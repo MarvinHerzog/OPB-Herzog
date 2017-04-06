@@ -1,2 +1,2 @@
-# OPB-Herzog
+# Trgovina
 Prototip spletne trgovine
