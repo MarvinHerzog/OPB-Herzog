@@ -3,7 +3,7 @@ import sqlite3
 import hashlib
 
 baza = "aaa.db"
-static_dir = "./views/static"
+static_dir = "./static"
 secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
 
 baza = sqlite3.connect(baza, isolation_level=None)
