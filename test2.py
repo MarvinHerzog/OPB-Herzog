@@ -1,6 +1,7 @@
 from bottle import *
 import sqlite3
 import hashlib
+import time
 
 baza = "aaa.db"
 static_dir = "./static"
@@ -11,7 +12,8 @@ c = baza.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS uporabnik (
   username TEXT PRIMARY KEY,
   password TEXT NOT NULL,
-  ime TEXT NOT NULL
+  ime TEXT NOT NULL,
+  priimek TEXT NOT NULL
 );
 ''')
 c.close()
@@ -26,7 +28,7 @@ def password_md5(s):
     h.update(s.encode('utf-8'))
     return h.hexdigest()
 
-def get_user(auto_login = True):
+def get_user(auto_login = False):
     """Poglej cookie in ugotovi, kdo je prijavljeni uporabnik,
        vrni njegov username in ime. Če ni prijavljen, presumeri
        na stran za prijavo ali vrni None (advisno od auto_login).
@@ -45,16 +47,20 @@ def get_user(auto_login = True):
             return r
     # Če pridemo do sem, uporabnik ni prijavljen, naredimo redirect
     if auto_login:
-        redirect('/login/')
+        redirect('/register/')
     else:
         return None
 
+##@route("/")
+##def main():
+##    (username, ime) = get_user()
+##    return template("bolha.html",
+##                    username=username)
+
+
 @route("/")
 def main():
-    (username, ime) = get_user()
-    return template("bolha.html",
-                    username=username)
-    
+    redirect("/shop/")
 
 @route("/static/<filename:path>")
 def static(filename):
@@ -74,6 +80,39 @@ def login_get():
     return template("login.html",
                            napaka=None,
                            username=None)
+
+@get("/index/")
+def index_get():
+    """Serviraj formo za index."""
+    return template("index.html",
+                           napaka=None,
+
+                           username=None)
+
+@get("/shop/")
+def shop_get():
+    """Serviraj formo za shop."""
+    logged = None
+    if request.get_cookie('username', secret=secret) is not None:
+        logged = get_user()[1]
+
+    
+    return template("shop.html",
+                           napaka=None,
+                           logged=logged)
+
+
+
+
+@get("/producttest/")
+def login_get():
+    """Serviraj formo za login."""
+    return template("product-details.html",
+                           napaka=None,
+                           ime=None,
+                           username=None)
+
+
 @post("/login/")
 def login_post():
     """Obdelaj izpolnjeno formo za prijavo"""
@@ -92,8 +131,9 @@ def login_post():
                                username=username)
     else:
         # Vse je v redu, nastavimo cookie in preusmerimo na glavno stran
-        response.set_cookie('username', username, path='/', secret=secret)
-        redirect("/")
+        response.set_cookie('username', username,path="/", secret=secret)
+        redirect("/shop/")
+    
 
 
 
@@ -111,6 +151,7 @@ def register_post():
     """Registriraj novega uporabnika."""
     username = request.forms.username
     ime = request.forms.ime
+    priimek = request.forms.priimek
     password1 = request.forms.password1
     password2 = request.forms.password2
     # Ali uporabnik že obstaja?
@@ -131,15 +172,19 @@ def register_post():
     else:
         # Vse je v redu, vstavi novega uporabnika v bazo
         password = password_md5(password1)
-        c.execute("INSERT INTO uporabnik (username, ime, password) VALUES (?, ?, ?)",
-                  (username, ime, password))
+        c.execute("INSERT INTO uporabnik (username, ime, priimek, password) VALUES (?, ?, ?, ?)",
+                  (username, ime,priimek, password))
         # Daj uporabniku cookie
         response.set_cookie('username', username, path='/', secret=secret)
-        redirect("/")
+        redirect("/shop/")
 
     
-def hello():
-    return "Hello ydyd!"
+@get("/logout/")
+def logout():
+    """Pobriši cookie in preusmeri na login."""
+    print("oki")
+    response.set_cookie('username',value="bai",secret=secret,path='/', max_age=0)
+    redirect('/shop/')
 
 
 
