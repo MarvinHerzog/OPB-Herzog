@@ -2,22 +2,30 @@ from bottle import *
 import sqlite3
 import hashlib
 import time
+import auth_public as auth
+import psycopg2, psycopg2.extensions, psycopg2.extras
 
-baza = "aaa.db"
+
 static_dir = "./static"
 secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
 
-baza = sqlite3.connect(baza, isolation_level=None)
-c = baza.cursor()
-c.execute('''CREATE TABLE IF NOT EXISTS uporabnik (
-  username TEXT PRIMARY KEY,
-  password TEXT NOT NULL,
-  ime TEXT NOT NULL,
-  priimek TEXT NOT NULL
-);
-''')
-c.close()
+#baza1 = "aaa.db"
+##baza = sqlite3.connect(baza1, isolation_level=None)
+##c = baza.cursor()
+##c.execute('''CREATE TABLE IF NOT EXISTS uporabnik (
+##  username TEXT PRIMARY KEY,
+##  password TEXT NOT NULL,
+##  ime TEXT NOT NULL,
+##  priimek TEXT NOT NULL
+##);
+##''')
+##c.close()
 
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE) # se znebimo problemov s sumniki
+baza = psycopg2.connect(database=auth.db, host=auth.host, user=auth.user, password=auth.password)
+baza.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT) # onemogocimo transakcije
+
+cur = baza.cursor(cursor_factory=psycopg2.extras.DictCursor) 
 
 
 
@@ -37,11 +45,9 @@ def get_user(auto_login = False):
     username = request.get_cookie('username', secret=secret)
     # Preverimo, ali ta uporabnik obstaja
     if username is not None:
-        c = baza.cursor()
-        c.execute("SELECT username, ime FROM uporabnik WHERE username=?",
+        cur.execute("SELECT username, name FROM users WHERE username=%s",
                   [username])
-        r = c.fetchone()
-        c.close ()
+        r = cur.fetchone()
         if r is not None:
             # uporabnik obstaja, vrnemo njegove podatke
             return r
@@ -77,6 +83,9 @@ def hello():
 @get("/login/")
 def login_get():
     """Serviraj formo za login."""
+    logged = None
+    if request.get_cookie('username', secret=secret) is not None:
+        redirect("/shop/")
     return template("login.html",
                            napaka=None,
                            username=None)
@@ -84,9 +93,12 @@ def login_get():
 @get("/index/")
 def index_get():
     """Serviraj formo za index."""
+    logged = None
+    if request.get_cookie('username', secret=secret) is not None:
+        logged = get_user()[1]
     return template("index.html",
                            napaka=None,
-
+                           logged=logged,                    
                            username=None)
 
 @get("/shop/")
@@ -94,9 +106,7 @@ def shop_get():
     """Serviraj formo za shop."""
     logged = None
     if request.get_cookie('username', secret=secret) is not None:
-        logged = get_user()[1]
-
-    
+        logged = get_user()[1]    
     return template("shop.html",
                            napaka=None,
                            logged=logged)
@@ -107,8 +117,12 @@ def shop_get():
 @get("/producttest/")
 def login_get():
     """Serviraj formo za login."""
+    logged = None
+    if request.get_cookie('username', secret=secret) is not None:
+        logged = get_user()[1]
     return template("product-details.html",
                            napaka=None,
+                           logged=logged,
                            ime=None,
                            username=None)
 
@@ -121,13 +135,12 @@ def login_post():
     # Izračunamo MD5 has gesla, ki ga bomo spravili
     password = password_md5(request.forms.password)
     # Preverimo, ali se je uporabnik pravilno prijavil
-    c = baza.cursor()
-    c.execute("SELECT 1 FROM uporabnik WHERE username=? AND password=?",
+    cur.execute("SELECT 1 FROM users WHERE username=%s AND password=%s",
               [username, password])
-    if c.fetchone() is None:
+    if cur.fetchone() is None:
         # Username in geslo se ne ujemata
         return template("login.html",
-                               napaka="Nepravilna prijava",
+                               napaka="No such user",
                                username=username)
     else:
         # Vse je v redu, nastavimo cookie in preusmerimo na glavno stran
@@ -140,10 +153,14 @@ def login_post():
 @get("/register/")
 def login_get():
     """Prikaži formo za registracijo."""
+    logged = None
+    if request.get_cookie('username', secret=secret) is not None:
+        logged = get_user()[1]
     return template("register.html", 
                            username=None,
                            ime=None,
-                           napaka=None)
+                           napaka=None,
+                           logged=logged)
 
 
 @post("/register/")
@@ -154,10 +171,10 @@ def register_post():
     priimek = request.forms.priimek
     password1 = request.forms.password1
     password2 = request.forms.password2
+    email = request.forms.email
     # Ali uporabnik že obstaja?
-    c = baza.cursor()
-    c.execute("SELECT 1 FROM uporabnik WHERE username=?", [username])
-    if c.fetchone():
+    cur.execute("SELECT 1 FROM users WHERE username=%s", [username])
+    if cur.fetchone():
         # Uporabnik že obstaja
         return template("register.html",
                                username=username,
@@ -172,8 +189,8 @@ def register_post():
     else:
         # Vse je v redu, vstavi novega uporabnika v bazo
         password = password_md5(password1)
-        c.execute("INSERT INTO uporabnik (username, ime, priimek, password) VALUES (?, ?, ?, ?)",
-                  (username, ime,priimek, password))
+        cur.execute("INSERT INTO users (username, name, surname, email, password,balance) VALUES (%s, %s, %s, %s,%s,%s)",
+                  (username, ime,priimek,email, password,0))
         # Daj uporabniku cookie
         response.set_cookie('username', username, path='/', secret=secret)
         redirect("/shop/")
@@ -182,7 +199,6 @@ def register_post():
 @get("/logout/")
 def logout():
     """Pobriši cookie in preusmeri na login."""
-    print("oki")
     response.set_cookie('username',value="bai",secret=secret,path='/', max_age=0)
     redirect('/shop/')
 
