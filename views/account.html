@@ -156,33 +156,25 @@
 	<section id="form"><!--form-->
 		<div class="container">
 			<div class="row">
-				<div class="col-sm-4 col-sm-offset-4">
-					<div class="login-form"><!--login form-->
-						<h2>Login to your account</h2>
-						<form class="form-signin" role="form" method="post" action=".">
-							<input type="username" class="form-control" placeholder="Uporabniško ime"
-								   %if username:
-								   value="{{username}}"
-								   %end
-								   name="username"
-								   required autofocus>
-							<input type="password" class="form-control" placeholder="Geslo" name="password" required>
-							<span>
-								<input type="checkbox" class="checkbox"> 
-								Keep me signed in
-							</span>
-							<button type="submit" class="btn btn-default">Login</button>
-							<h5>
-							%if napaka is not None:
-									{{napaka}}
-							%end
-							</h5>							
-							New user? Register <a href=/register/>here</a>
 
-						</form>
-					</div><!--/login form-->
+				<div class="col-sm-2 ">
+					<div class="form-group row">
+					<form id="main-contact-form" class="contact-form row" name="contact-form" method="post">
+
+						<h2>Account balance</h2>
+						  <label for="example-number-input" class="col-2 col-form-label">Deposit amount (in €)</label>
+						  <div class="col-sm-7 ">
+							<input class="form-control" type="number" step="0.01" value="0.00" name="deposit">
+							<button type="submit" class="btn btn-default">Plati pare bre</button>
+							%if napaka is not None:
+							<div>{{napaka}}<div>
+							%end
+						  </div>
+					</form>
+					</div>					
 				</div>
-				
+
+	
 				
 			</div>
 		</div>

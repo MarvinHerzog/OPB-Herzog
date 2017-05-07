@@ -4,6 +4,7 @@ import hashlib
 import time
 import auth_public as auth
 import psycopg2, psycopg2.extensions, psycopg2.extras
+from decimal import *
 
 
 static_dir = "./static"
@@ -36,7 +37,7 @@ def password_md5(s):
     h.update(s.encode('utf-8'))
     return h.hexdigest()
 
-def get_user(auto_login = False):
+def get_user(auto_login = False,auto_redir=False):
     """Poglej cookie in ugotovi, kdo je prijavljeni uporabnik,
        vrni njegov username in ime. Če ni prijavljen, presumeri
        na stran za prijavo ali vrni None (advisno od auto_login).
@@ -45,17 +46,21 @@ def get_user(auto_login = False):
     username = request.get_cookie('username', secret=secret)
     # Preverimo, ali ta uporabnik obstaja
     if username is not None:
-        cur.execute("SELECT username, name FROM users WHERE username=%s",
-                  [username])
-        r = cur.fetchone()
-        if r is not None:
-            # uporabnik obstaja, vrnemo njegove podatke
-            return r
+        #Če si že prijavljen, nimaš tu kaj iskat
+        if auto_redir: 
+            redirect('/shop/')
+        else:
+            cur.execute("SELECT userID, username, name,balance  FROM users WHERE username=%s",
+                      [username])
+            r = cur.fetchone()
+            if r is not None:
+                # uporabnik obstaja, vrnemo njegove podatke
+                return r
     # Če pridemo do sem, uporabnik ni prijavljen, naredimo redirect
     if auto_login:
-        redirect('/register/')
+        redirect('/login/')
     else:
-        return None
+        return [None,None,None,None]
 
 ##@route("/")
 ##def main():
@@ -80,36 +85,24 @@ def static(filename):
 def hello():
     return "Hello World!"
 
-@get("/login/")
-def login_get():
-    """Serviraj formo za login."""
-    logged = None
-    if request.get_cookie('username', secret=secret) is not None:
-        redirect("/shop/")
-    return template("login.html",
-                           napaka=None,
-                           username=None)
-
 @get("/index/")
 def index_get():
     """Serviraj formo za index."""
-    logged = None
-    if request.get_cookie('username', secret=secret) is not None:
-        logged = get_user()[1]
+    curuser = get_user()
     return template("index.html",
+                           stanje = curuser[3],
                            napaka=None,
-                           logged=logged,                    
+                           logged=curuser[2],                    
                            username=None)
 
 @get("/shop/")
 def shop_get():
     """Serviraj formo za shop."""
-    logged = None
-    if request.get_cookie('username', secret=secret) is not None:
-        logged = get_user()[1]    
+    curuser = get_user()
     return template("shop.html",
                            napaka=None,
-                           logged=logged)
+                           stanje=curuser[3],
+                           logged=curuser[2])
 
 
 
@@ -117,14 +110,23 @@ def shop_get():
 @get("/producttest/")
 def login_get():
     """Serviraj formo za login."""
-    logged = None
-    if request.get_cookie('username', secret=secret) is not None:
-        logged = get_user()[1]
+    curuser = get_user()
     return template("product-details.html",
                            napaka=None,
-                           logged=logged,
-                           ime=None,
+                           logged=curuser[2],
                            username=None)
+
+
+@get("/login/")
+def login_get():
+    """Serviraj formo za login."""
+    curuser = get_user(auto_redir = True)
+    return template("login.html",
+                           napaka=None,
+                           logged=None,
+                           username=None)
+
+
 
 
 @post("/login/")
@@ -153,16 +155,12 @@ def login_post():
 @get("/register/")
 def login_get():
     """Prikaži formo za registracijo."""
-    logged = None
-    if request.get_cookie('username', secret=secret) is not None:
-        logged = get_user()[1]
+    curuser = get_user(auto_redir = True)
     return template("register.html", 
                            username=None,
                            ime=None,
                            napaka=None,
-                           logged=logged)
-
-
+                           logged=curuser[2])
 @post("/register/")
 def register_post():
     """Registriraj novega uporabnika."""
@@ -194,6 +192,58 @@ def register_post():
         # Daj uporabniku cookie
         response.set_cookie('username', username, path='/', secret=secret)
         redirect("/shop/")
+
+
+
+@get("/account/")
+def login_get():
+    """Prikaži formo za registracijo."""
+    curuser = get_user(auto_login=True)
+    return template("account.html",
+                           stanje=curuser[3],
+                           username=None,
+                           ime=None,
+                           napaka=None,
+                           logged=curuser[2])
+
+
+@post("/account/")
+def register_post():
+    """Depozit."""
+    curuser = get_user(auto_login=True)
+    deposit = Decimal(request.forms.deposit)
+    if deposit <= 0:
+        return template("account.html",
+                           stanje=curuser[3],
+                           username=None,
+                           ime=None,
+                           napaka="Please enter a positive amount",
+                           logged=curuser[2])
+        
+    if deposit + curuser[3] > 999999:
+        return template("account.html",
+                           stanje=curuser[3],
+                           username=None,
+                           ime=None,
+                           napaka="Amount would exceed your balance limit.",
+                           logged=curuser[2])
+
+    
+    cur.execute("UPDATE users SET balance = balance + %s WHERE userID = 1", [deposit])
+    return template("account.html",
+                           stanje=curuser[3]+deposit,
+                           username=None,
+                           ime=None,
+                           napaka="Your deposit was successful.",
+                           logged=curuser[2])
+
+
+
+
+
+
+
+
 
     
 @get("/logout/")

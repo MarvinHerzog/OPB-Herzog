@@ -12,7 +12,7 @@ create table users(
     surname TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    balance numeric(7,2) NOT NULL,
+    balance numeric(9,2) NOT NULL,
     address TEXT
     );
 
@@ -33,8 +33,8 @@ create table items(
     itemname TEXT NOT NULL,
     categoryID int NOT NULL REFERENCES categories(categoryID) ON DELETE CASCADE,
     ownerID int NOT NULL REFERENCES users(userID) ON DELETE CASCADE,
-    starting_bid numeric(7,2),
-    buyout_price numeric(7,2),
+    starting_bid numeric(9,2),
+    buyout_price numeric(9,2),
     posted_date TIMESTAMP DEFAULT now() NOT NULL,
     expires TIMESTAMP NOT NULL,
     description TEXT NOT NULL,
@@ -49,8 +49,8 @@ CREATE TABLE sold_expired(
     itemname TEXT NOT NULL,
     categoryID int NOT NULL REFERENCES categories(categoryID) ON DELETE CASCADE,
     ownerID int NOT NULL REFERENCES users(userID) ON DELETE CASCADE,
-    starting_bid numeric(7,2),
-    buyout_price numeric(7,2),
+    starting_bid numeric(9,2),
+    buyout_price numeric(9,2),
     posted_date TIMESTAMP DEFAULT now() NOT NULL,
     expires TIMESTAMP NOT NULL,
     description TEXT NOT NULL,
@@ -62,8 +62,39 @@ CREATE TABLE sold_expired(
 CREATE TABLE transactions(
     itemID int REFERENCES items(itemID) NOT NULL,
     buyerID int REFERENCES users(userID) NOT NULL,
-    sold_for numeric(7,2) NOT NULL,
-    date_sold TIMESTAMP NOT NULL,
-    purchase_method TEXT NOT NULL
-    )
+    transaction numeric(9,2) NOT NULL,
+    tr_date TIMESTAMP NOT NULL,
+    tr_method TEXT NOT NULL /*bid/buyout/deposit*/
+    );
+
+GRANT ALL ON ALL TABLES IN SCHEMA public TO martinp;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO martinp;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO jakobj;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO jakobj;
+GRANT SELECT, UPDATE, INSERT ON ALL TABLES IN SCHEMA public TO javnost;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO javnost;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
