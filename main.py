@@ -170,6 +170,7 @@ def register_post():
     password1 = request.forms.password1
     password2 = request.forms.password2
     email = request.forms.email
+    curuser = get_user(auto_redir = True)
     # Ali uporabnik že obstaja?
     cur.execute("SELECT 1 FROM users WHERE username=%s", [username])
     if cur.fetchone():
@@ -177,12 +178,14 @@ def register_post():
         return template("register.html",
                                username=username,
                                ime=ime,
-                               napaka='To uporabniško ime je že zavzeto')
+                               napaka='To uporabniško ime je že zavzeto',
+                               logged=curuser[2])
     elif not password1 == password2:
         # Geslo se ne ujemata
         return template("register.html",
                                username=username,
                                ime=ime,
+                               logged=curuser[2],
                                napaka='Gesli se ne ujemata')
     else:
         # Vse je v redu, vstavi novega uporabnika v bazo
