@@ -31,9 +31,9 @@ def get_user(auto_login = True):
        vrni njegov username in ime. Če ni prijavljen, presumeri
        na stran za prijavo ali vrni None (advisno od auto_login).
     """
-    # Dobimo username iz piškotka
+    # Dobimo username iz piškotka.
     username = request.get_cookie('username', secret=secret)
-    # Preverimo, ali ta uporabnik obstaja
+    # Preverimo, ali ta uporabnik obstaja.
     if username is not None:
         c = baza.cursor()
         c.execute("SELECT username, ime FROM uporabnik WHERE username=?",
@@ -41,9 +41,9 @@ def get_user(auto_login = True):
         r = c.fetchone()
         c.close ()
         if r is not None:
-            # uporabnik obstaja, vrnemo njegove podatke
+            # uporabnik obstaja, vrnemo njegove podatke.
             return r
-    # Če pridemo do sem, uporabnik ni prijavljen, naredimo redirect
+    # Če pridemo do sem, uporabnik ni prijavljen, naredimo redirect.
     if auto_login:
         redirect('/login/')
     else:
@@ -78,7 +78,7 @@ def login_post():
     c.execute("SELECT 1 FROM uporabnik WHERE username=? AND password=?",
               [username, password])
     if c.fetchone() is None:
-        # Username in geslo se ne ujemata
+        # Username in geslo se ne ujemata.
         return template("login.html",
                                napaka="Nepravilna prijava",
                                username=username)
@@ -105,7 +105,7 @@ def register_post():
     ime = request.forms.ime
     password1 = request.forms.password1
     password2 = request.forms.password2
-    # Ali uporabnik že obstaja?
+    # Ali uporabnik že obstaja?.
     c = baza.cursor()
     c.execute("SELECT 1 FROM uporabnik WHERE username=?", [username])
     if c.fetchone():

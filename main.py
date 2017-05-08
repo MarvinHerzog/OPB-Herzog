@@ -46,7 +46,7 @@ def get_user(auto_login = False,auto_redir=False):
     username = request.get_cookie('username', secret=secret)
     # Preverimo, ali ta uporabnik obstaja
     if username is not None:
-        #Če si že prijavljen, nimaš tu kaj iskat
+        #Če si že prijavljen, nimaš tu kaj iskat! 
         if auto_redir: 
             redirect('/shop/')
         else:
@@ -56,7 +56,7 @@ def get_user(auto_login = False,auto_redir=False):
             if r is not None:
                 # uporabnik obstaja, vrnemo njegove podatke
                 return r
-    # Če pridemo do sem, uporabnik ni prijavljen, naredimo redirect
+    # Če pridemo do sem, uporabnik ni prijavljen, naredimo redirect.
     if auto_login:
         redirect('/login/')
     else:
@@ -67,7 +67,7 @@ def get_user(auto_login = False,auto_redir=False):
 ##    (username, ime) = get_user()
 ##    return template("bolha.html",
 ##                    username=username)
-
+##
 
 @route("/")
 def main():
