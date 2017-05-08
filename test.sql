@@ -4,6 +4,8 @@ drop table IF EXISTS subcategories CASCADE;
 drop table IF EXISTS items CASCADE;
 drop table IF EXISTS sold_expired CASCADE;
 drop table IF EXISTS transactions CASCADE;
+drop table IF EXISTS attributes CASCADE;
+drop table IF EXISTS cat_attrib CASCADE;
 
 create table users(
     userID serial PRIMARY KEY NOT NULL,
@@ -27,6 +29,10 @@ create table subcategories(
     PRIMARY KEY(childID, parentID),
     CONSTRAINT IDs_are_identical CHECK (childID <> parentID)
     );
+	
+	
+	
+
 
 create table items(
     itemID serial primary key NOT NULL,
@@ -43,6 +49,19 @@ create table items(
     CONSTRAINT no_price CHECK(starting_bid IS NOT NULL OR buyout_price IS NOT NULL)
     );
     
+create table attributes(
+	itemID int NOT NULL REFERENCES items(itemID) ON DELETE CASCADE,
+	attributeID int NOT NULL,
+	value TEXT NOT NULL,
+	PRIMARY KEY(itemID, attributeID)
+	); /*poskrbi v aplikaciji da ne shranjujes NULL atributov.. ali pac?*/
+	
+create table cat_attrib(
+	attributeID SERIAL PRIMARY KEY NOT NULL,
+	attributename TEXT NOT NULL,
+	attributeclass TEXT NOT NULL,
+	categoryID int REFERENCES categories(categoryID) ON DELETE CASCADE
+	); /*podkategorija naj implicitno deduje atribute vseh svojih starsev */
     
 CREATE TABLE sold_expired(
     itemID serial primary key NOT NULL,

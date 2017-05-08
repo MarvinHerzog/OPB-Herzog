@@ -232,7 +232,7 @@ def register_post():
                            logged=curuser[2])
 
     
-    cur.execute("UPDATE users SET balance = balance + %s WHERE userID = 1", [deposit])
+    cur.execute("UPDATE users SET balance = balance + %s WHERE userID = %s", [deposit,curuser[0]])
     return template("account.html",
                            stanje=curuser[3]+deposit,
                            username=None,
@@ -243,7 +243,16 @@ def register_post():
 
 
 
-
+@get("/new/")
+def login_get():
+    """Prikaži formo za registracijo."""
+    curuser = get_user(auto_login=True)
+    return template("new.html",
+                           stanje=curuser[3],
+                           username=None,
+                           ime=None,
+                           napaka=None,
+                           logged=curuser[2])
 
 
 

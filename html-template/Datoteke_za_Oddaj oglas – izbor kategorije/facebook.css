@@ -1,0 +1,66 @@
+#fb_area
+	{
+		display:none;
+	}
+
+	#fb_area span.fb_title
+		{
+			display:block;
+			padding-bottom:2px;
+		}
+
+	#fb_area span.fb_error
+		{
+			color:#ff0000;
+		}
+
+	#fb_area span.fb_data
+		{
+			display:block;
+			width:235px;
+			height:50px;
+			padding-top:5px;
+			padding-bottom:5px;
+			border-top: solid 1px #ccc;
+			border-bottom: solid 1px #ccc;
+			background:url('/images/login/fbcute.png') left center no-repeat;
+		}
+
+		#fb_area span.fb_data span#fb_image img
+			{
+				float:left;
+				margin-right:10px;
+				margin-left:50px;
+				width:50px;
+				height:50px;
+				border: 0 none;
+			}
+	
+		#fb_area span.fb_data span#fb_activeuser
+			{
+				float:left;
+				height:33px;
+				margin-right:0px;
+				padding-top: 17px;
+			}
+
+.fb_title .drop
+	{
+		display:block;
+		height:22px;
+		line-height:22px;
+		padding-left:25px;
+		background:url('/images/login/cancel.png') left center no-repeat;
+	}
+
+.fbtop {
+	background:url('/images/login/poveziprofiltop.png') left center no-repeat;
+	width:235px;
+	height:39px;
+	margin-top:15px;
+	margin-bottom:15px;
+	border-top:solid 1px #ccc;
+	border-bottom:solid 1px #ccc;
+	padding-top:10px;
+	padding-bottom:10px;
+}
