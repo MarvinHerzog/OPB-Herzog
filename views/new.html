@@ -89,7 +89,7 @@
 								%if logged is not None:
 								<li><a href="/account/"><i class="fa fa-user"></i> {{logged}}</a></li>
 								<li><a href=""><i class="fa fa-star"></i> Your balance: {{stanje}}€</a></li>
-								<li><a href="checkout.html"><i class="fa fa-crosshairs"></i> Checkout</a></li>
+								<li><a href="/new/"><i class="fa fa-crosshairs"></i>Sell Items</a></li>
 								<li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
 								%end
 								%if logged is None:
@@ -159,41 +159,39 @@
 				</ol>
 			</div><!--/breadcrums-->
 
-			<div class="step-one">
-				<h2 class="heading">Step1</h2>
-			</div>
-			<div class="checkout-options">
-				<h3>New User</h3>
-				<p>Checkout options</p>
-				<ul class="nav">
-					<li>
-						<label><input type="checkbox"> Register Account</label>
-					</li>
-					<li>
-						<label><input type="checkbox"> Guest Checkout</label>
-					</li>
-					<li>
-						<a href=""><i class="fa fa-times"></i>Cancel</a>
-					</li>
-				</ul>
-			</div><!--/checkout-options-->
-
-			<div class="register-req">
-				<p>Please use Register And Checkout to easily get access to your order history, or use Checkout as Guest</p>
-			</div><!--/register-req-->
-
 			<div class="shopper-informations">
 				<div class="row">
 					
 					<div class="col-sm-5 clearfix">
 						<div class="bill-to">
-							<p>Bill To</p>
+							<p>Select the category of your item:</p>
 							<div class="form-two">
-								<form>
-									<input type="text" placeholder="Zip / Postal Code *">
-									<select>
+								
+									
+									%for nivo in range(len(seznam)):
+										%if nivo <= maxdepth:
+											<form method=GET name='form{{nivo}}'>
+												<select onchange="this.form.submit()" name={{nivo}}>
+														<option 
+															%if query[str(nivo)] == 'dummy':
+																selected="selected"
+															%end
+															>Select category
+															</option>
+													%for kategorija in seznam[nivo]:
+														<option value={{kategorija[0]}} 
+														%if query[str(nivo)] == str(kategorija[0]):
+															selected = "selected"
+														%end
+														>{{kategorija[1]}}</option>
+													%end
+												</select>
+										%end
+									%end
+									<!--
+									<select onchange="this.form.submit()" name="2s">
 										<option>-- Country --</option>
-										<option>United States</option>
+										<option name="us">United States</option>
 										<option>Bangladesh</option>
 										<option>UK</option>
 										<option>India</option>
@@ -202,21 +200,24 @@
 										<option>Canada</option>
 										<option>Dubai</option>
 									</select>
-									<select>
+									<select onchange="this.form.submit()" name="3s" >
 										<option>-- State / Province / Region --</option>
 										<option>United States</option>
 										<option>Bangladesh</option>
 										<option>UK</option>
-										<option>India</option>
+										<option selected="selected">India</option>
 										<option>Pakistan</option>
 										<option>Ucrane</option>
 										<option>Canada</option>
 										<option>Dubai</option>
 									</select>
+									
+									<input type="text" placeholder="Zip / Postal Code *">
 									<input type="password" placeholder="Confirm password">
 									<input type="text" placeholder="Phone *">
 									<input type="text" placeholder="Mobile Phone">
 									<input type="text" placeholder="Fax">
+									-->
 								</form>
 							</div>
 

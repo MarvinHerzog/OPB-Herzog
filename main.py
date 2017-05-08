@@ -246,8 +246,34 @@ def register_post():
 @get("/new/")
 def login_get():
     """Prikaži formo za registracijo."""
+    maxdepth = 99
     curuser = get_user(auto_login=True)
+    query = dict(request.query)
+    print(query)
+    seznam_kategorij = []
+    cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid is NULL")
+    seznam_kategorij.append(cur.fetchall())
+    for i in range(0,5):
+        try:
+            tr=query[str(i)]
+            cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid = %s",[int(tr)])
+            result = cur.fetchall()
+            print(result)
+            if not result:
+                maxdepth = i
+            else:
+                seznam_kategorij.append(result)
+               
+        except:
+            print(i)
+            query[str(i)] = "dummy"
+    print(query)
+    print(seznam_kategorij)
+    print(maxdepth)
     return template("new.html",
+                           maxdepth = maxdepth,
+                           seznam=seznam_kategorij,
+                           query=query,
                            stanje=curuser[3],
                            username=None,
                            ime=None,
