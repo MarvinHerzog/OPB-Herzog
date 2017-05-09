@@ -246,30 +246,39 @@ def register_post():
 @get("/new/")
 def login_get():
     """Prikaži formo za registracijo."""
-    maxdepth = 99
+    maxdepth = 99 #mogoče nepotrebno
     curuser = get_user(auto_login=True)
-    query = dict(request.query)
-    print(query)
-    seznam_kategorij = []
-    cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid is NULL")
+    query = dict(request.query) #poberemo parametre iz query stringa, shranimo v slovar
+    seznam_kategorij = [] #seznam seznamov kategorij (po globinah)
+    cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid is NULL") #dobi vse kategorije globine 0 in jih spravi v seznam kategorij
     seznam_kategorij.append(cur.fetchall())
+    attrib = 0
     for i in range(0,5):
+        #globina kategorij zaenkrat največ pet
         try:
-            tr=query[str(i)]
-            cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid = %s",[int(tr)])
-            result = cur.fetchall()
-            print(result)
-            if not result:
-                maxdepth = i
+            ustreznost="krneki" 
+            if i >0:
+                #query stringi se lahko pomešajo, napačni inputi itd. Ta if preveri, če hiearhija res drži, sicer vrne napako
+                cur.execute("SELECT categoryid,category_name FROM categories WHERE categoryid = %s AND parentid = %s",[query[str(i)],query[str(i-1)]])
+                ustreznost=cur.fetchone()
+            if ustreznost == None:
+                raise
             else:
-                seznam_kategorij.append(result)
-               
+                #če je vse v redu, dobi vse podkategorije izbrane kategorije in jih spravi v seznam seznamov
+                cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid = %s",[int(query[str(i)])])
+                result = cur.fetchall()
+                if not result:
+                    attrib = 1
+                    break
+                else:
+                    seznam_kategorij.append(result)                   
         except:
-            print(i)
+            #če pride do napake (npr. query stringa ni bilo za dan 'i') nastavi vrednost v slovarju na dummy, da ga html ignorira
             query[str(i)] = "dummy"
-    print(query)
-    print(seznam_kategorij)
-    print(maxdepth)
+
+
+    if attrib == 1:
+        curuser[3] = "to dela "
     return template("new.html",
                            maxdepth = maxdepth,
                            seznam=seznam_kategorij,

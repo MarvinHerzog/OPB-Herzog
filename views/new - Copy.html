@@ -162,7 +162,7 @@
 			<div class="shopper-informations">
 				<div class="row">
 					
-					<div class="col-sm-4">
+					<div class="col-sm-5 clearfix">
 						<div class="bill-to">
 							<p>Select the category of your item:</p>
 							<div class="form-two">
@@ -172,7 +172,7 @@
 										%if nivo <= maxdepth:
 											<form method=GET name='form{{nivo}}'>
 												<select onchange="this.form.submit()" name={{nivo}}>
-														<option disabled selected value
+														<option 
 															%if query[str(nivo)] == 'dummy':
 																selected="selected"
 															%end
