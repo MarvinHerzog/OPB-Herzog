@@ -25,7 +25,6 @@ secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE) # se znebimo problemov s sumniki
 baza = psycopg2.connect(database=auth.db, host=auth.host, user=auth.user, password=auth.password)
 baza.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT) # onemogocimo transakcije
-
 cur = baza.cursor(cursor_factory=psycopg2.extras.DictCursor) 
 
 
@@ -113,6 +112,7 @@ def login_get():
     curuser = get_user()
     return template("product-details.html",
                            napaka=None,
+                           stanje=curuser[3],
                            logged=curuser[2],
                            username=None)
 
@@ -249,10 +249,12 @@ def login_get():
     maxdepth = 99 #mogoče nepotrebno
     curuser = get_user(auto_login=True)
     query = dict(request.query) #poberemo parametre iz query stringa, shranimo v slovar
-    seznam_kategorij = [] #seznam seznamov kategorij (po globinah)
+    seznam_kategorij = []#seznam seznamov kategorij (po globinah)
+    seznam_atributov = []
     cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid is NULL") #dobi vse kategorije globine 0 in jih spravi v seznam kategorij
     seznam_kategorij.append(cur.fetchall())
     attrib = 0
+    cleanquery = {} #tu shranimo samo ustrezne elemente slovarja query
     for i in range(0,5):
         #globina kategorij zaenkrat največ pet
         try:
@@ -267,6 +269,7 @@ def login_get():
                 #če je vse v redu, dobi vse podkategorije izbrane kategorije in jih spravi v seznam seznamov
                 cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid = %s",[int(query[str(i)])])
                 result = cur.fetchall()
+                cleanquery[str(i)] = query[str(i)]
                 if not result:
                     attrib = 1
                     break
@@ -275,13 +278,22 @@ def login_get():
         except:
             #če pride do napake (npr. query stringa ni bilo za dan 'i') nastavi vrednost v slovarju na dummy, da ga html ignorira
             query[str(i)] = "dummy"
+            
 
 
     if attrib == 1:
-        curuser[3] = "to dela "
+        #če smo izbrali končno kategorijo, izberemo atribute za predmet:
+        print(query,cleanquery)
+        
+        for i in cleanquery:
+            cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
+            seznam_atributov+= cur.fetchall()
+    print(seznam_atributov)
     return template("new.html",
+                           attrib = attrib,
                            maxdepth = maxdepth,
                            seznam=seznam_kategorij,
+                           seznam_atributov = seznam_atributov,
                            query=query,
                            stanje=curuser[3],
                            username=None,

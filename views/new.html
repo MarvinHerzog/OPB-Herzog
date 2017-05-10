@@ -162,14 +162,13 @@
 			<div class="shopper-informations">
 				<div class="row">
 					
-					<div class="col-sm-4">
+					<div class="col-sm-5">
 						<div class="bill-to">
 							<p>Select the category of your item:</p>
 							<div class="form-two">
 								
 									
 									%for nivo in range(len(seznam)):
-										%if nivo <= maxdepth:
 											<form method=GET name='form{{nivo}}'>
 												<select onchange="this.form.submit()" name={{nivo}}>
 														<option disabled selected value
@@ -186,7 +185,7 @@
 														>{{kategorija[1]}}</option>
 													%end
 												</select>
-										%end
+										
 									%end
 									<!--
 									<select onchange="this.form.submit()" name="2s">
@@ -224,158 +223,61 @@
 							
 						</div>
 					</div>
-					<div class="col-sm-3">
-						<div class="shopper-info">
-							<p>Shopper Information</p>
-							<form>
-								<input type="text" placeholder="Display Name">
-								<input type="text" placeholder="User Name">
-								<input type="password" placeholder="Password">
-								<input type="password" placeholder="Confirm password">
-							</form>
-							<a class="btn btn-primary" href="">Get Quotes</a>
-							<a class="btn btn-primary" href="">Continue</a>
+					<div class="col-sm-7 shopper-info">
+							
+							<div class="row">
+							%if attrib == 1:
+							
+								<div class="col-sm-12z shopper-info">
+									<form method=GET name='form{{nivo}}'>
+									<p>Title</p>
+									<input name="itemname" placeholder="Enter a name for your item">
+									%if seznam_atributov:
+									<p>Item Attributes</p>
+									%for i in range(len(seznam_atributov)):
+											
+												<input name="a{{seznam_atributov[i][0]}}"
+												placeholder="{{seznam_atributov[i][1]}}"
+												
+												%if seznam_atributov[i][2].lower() == "integer":
+													type="number" step="1"
+												%elif "numeric" in seznam_atributov[i][2].lower():
+													type = "number"
+													step = "0."+(re.search('(?<=,)\d+', seznam_atributov[i][2].lower()).group(0)-1)*"0"+"1" 
+												%elif seznam_atributov[i][2].lower() == "text":
+													type="text" size="100"
+												%else:
+													NE POZNAM TIPA, ADMIN POPRAVI
+												%end
+											
+												
+												
+												
+												
+												
+												>
+														
+												
+										
+									%end
+									%end
+									<div class="order-message">
+										<p>Item description</p>
+										<textarea name="message"  placeholder="Enter a description for your item" rows="16"></textarea>
+										
+									</div>
+									<form>
+								</div>
+							%end
+							</div>
 						</div>
 					</div>
-					<div class="col-sm-4">
-						<div class="order-message">
-							<p>Shipping Order</p>
-							<textarea name="message"  placeholder="Notes about your order, Special Notes for Delivery" rows="16"></textarea>
-							<label><input type="checkbox"> Shipping to bill address</label>
-						</div>	
-					</div>					
+										
 				</div>
+				
 			</div>
-			<div class="review-payment">
-				<h2>Review & Payment</h2>
+			<div style="height: 100px;">
 			</div>
-
-			<div class="table-responsive cart_info">
-				<table class="table table-condensed">
-					<thead>
-						<tr class="cart_menu">
-							<td class="image">Item</td>
-							<td class="description"></td>
-							<td class="price">Price</td>
-							<td class="quantity">Quantity</td>
-							<td class="total">Total</td>
-							<td></td>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td class="cart_product">
-								<a href=""><img src="/static/images/cart/one.png" alt=""></a>
-							</td>
-							<td class="cart_description">
-								<h4><a href="">Colorblock Scuba</a></h4>
-								<p>Web ID: 1089772</p>
-							</td>
-							<td class="cart_price">
-								<p>$59</p>
-							</td>
-							<td class="cart_quantity">
-								<div class="cart_quantity_button">
-									<a class="cart_quantity_up" href=""> + </a>
-									<input class="cart_quantity_input" type="text" name="quantity" value="1" autocomplete="off" size="2">
-									<a class="cart_quantity_down" href=""> - </a>
-								</div>
-							</td>
-							<td class="cart_total">
-								<p class="cart_total_price">$59</p>
-							</td>
-							<td class="cart_delete">
-								<a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
-							</td>
-						</tr>
-
-						<tr>
-							<td class="cart_product">
-								<a href=""><img src="/static/images/cart/two.png" alt=""></a>
-							</td>
-							<td class="cart_description">
-								<h4><a href="">Colorblock Scuba</a></h4>
-								<p>Web ID: 1089772</p>
-							</td>
-							<td class="cart_price">
-								<p>$59</p>
-							</td>
-							<td class="cart_quantity">
-								<div class="cart_quantity_button">
-									<a class="cart_quantity_up" href=""> + </a>
-									<input class="cart_quantity_input" type="text" name="quantity" value="1" autocomplete="off" size="2">
-									<a class="cart_quantity_down" href=""> - </a>
-								</div>
-							</td>
-							<td class="cart_total">
-								<p class="cart_total_price">$59</p>
-							</td>
-							<td class="cart_delete">
-								<a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
-							</td>
-						</tr>
-						<tr>
-							<td class="cart_product">
-								<a href=""><img src="/static/images/cart/three.png" alt=""></a>
-							</td>
-							<td class="cart_description">
-								<h4><a href="">Colorblock Scuba</a></h4>
-								<p>Web ID: 1089772</p>
-							</td>
-							<td class="cart_price">
-								<p>$59</p>
-							</td>
-							<td class="cart_quantity">
-								<div class="cart_quantity_button">
-									<a class="cart_quantity_up" href=""> + </a>
-									<input class="cart_quantity_input" type="text" name="quantity" value="1" autocomplete="off" size="2">
-									<a class="cart_quantity_down" href=""> - </a>
-								</div>
-							</td>
-							<td class="cart_total">
-								<p class="cart_total_price">$59</p>
-							</td>
-							<td class="cart_delete">
-								<a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="4">&nbsp;</td>
-							<td colspan="2">
-								<table class="table table-condensed total-result">
-									<tr>
-										<td>Cart Sub Total</td>
-										<td>$59</td>
-									</tr>
-									<tr>
-										<td>Exo Tax</td>
-										<td>$2</td>
-									</tr>
-									<tr class="shipping-cost">
-										<td>Shipping Cost</td>
-										<td>Free</td>										
-									</tr>
-									<tr>
-										<td>Total</td>
-										<td><span>$61</span></td>
-									</tr>
-								</table>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="payment-options">
-					<span>
-						<label><input type="checkbox"> Direct Bank Transfer</label>
-					</span>
-					<span>
-						<label><input type="checkbox"> Check Payment</label>
-					</span>
-					<span>
-						<label><input type="checkbox"> Paypal</label>
-					</span>
-				</div>
 		</div>
 	</section> <!--/#cart_items-->
 
