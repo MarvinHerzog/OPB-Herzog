@@ -6,6 +6,19 @@ INSERT INTO categories(category_name,parentid) VALUES ('Keyboards',26);
 INSERT INTO categories(category_name,parentid) VALUES ('Mice',26);
 INSERT INTO categories(category_name,parentid) VALUES ('Monitors',26);
 INSERT INTO categories(category_name,parentid) VALUES ('RAM',25);
+/* jj */
+INSERT INTO categories(category_name,parentid) VALUES ('Commercial',4);
+INSERT INTO categories(category_name,parentid) VALUES ('Land',4);
+INSERT INTO categories(category_name,parentid) VALUES ('Residental',4);
+INSERT INTO categories(category_name,parentid) VALUES ('Other Real Estate',4);
+INSERT INTO categories(category_name,parentid) VALUES ('Cottages',33);
+INSERT INTO categories(category_name,parentid) VALUES ('Garages',31);
+INSERT INTO categories(category_name,parentid) VALUES ('Houses',33);
+INSERT INTO categories(category_name,parentid) VALUES ('Appartments',33);
+INSERT INTO categories(category_name,parentid) VALUES ('Offices',31);
+INSERT INTO categories(category_name,parentid) VALUES ('Farms and Rural Properties',32);
+INSERT INTO categories(category_name,parentid) VALUES ('Sport Properties',32);
+INSERT INTO categories(category_name,parentid) VALUES ('Motorcycles',1);
 
 /*Pri dodajanju atributov za kategorije VEDNO daj atribut staršu,
  če je to mogoče (tj. če ustreza vsem otrokom starša).
@@ -20,5 +33,9 @@ npr. "color" dodaš kategoriji "vehicles" ne pa k "Mitsubishi",
  INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Maximum Resolution','TEXT',29);
  INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Screen size (")','INTEGER',29); 
  INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Refresh rate','TEXT',29);
- INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Memory','INTEGER',30);
- 
+ /* jj */
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Size (m^2)', 'INTEGER', 4);
+ INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Location','TEXT', 4);
+ INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Age (years)', 'INTEGER', 4);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Mileage', 'INTEGER', 1);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Fuel Type', 'text', 1);
