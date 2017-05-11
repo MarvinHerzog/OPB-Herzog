@@ -161,11 +161,10 @@
 
 			<div class="shopper-informations">
 				%if napaka:
-				<div class="row">
-					<h3>{{napaka}}<h3>
+				<div class="row" >
+					<h5 style="background: rgba(255, 0, 0, 0.49); text-align: center;">{{napaka}}</h5>
 				<div>
 				%end
-				
 				<div class="row">
 					
 					<div class="col-sm-4">
@@ -235,9 +234,9 @@
 							%if attrib == 1:
 							
 								<div class="col-sm-12z shopper-info">
-									<form method=POST>
+									<form method=POST  enctype="multipart/form-data">
 									<p>Title</p>
-									<input name="itemname"
+									<input name="itemname" required
 									%if values[0]!='' and values[0] is not None:
 										value="{{values[0]}}"
 									%end
@@ -260,8 +259,8 @@
 												%else:
 													NE POZNAM TIPA, ADMIN POPRAVI
 												%end
-												%if values[i]!='' and values[i] is not None:
-												    value="{{values[i+1]}}"
+												%if values[i+6]!='' and values[i+6] is not None:
+												    value="{{values[i+6]}}"
 												%end
 												
 											
@@ -278,11 +277,13 @@
 									%end
 									<div class="order-message">
 										<p>Item description</p>
-										<textarea name="message" 
-										%if values[1]!='' and values[1] is not None:
-											value="{{values[1]}}"
-										%end
-										placeholder="Enter a description for your item" rows="16"></textarea>
+										<textarea name="message" required 			
+										placeholder="Enter a description for your item" rows="16" value = '5'>
+									%if values[1]!='' and values[1] is not None:
+{{values[1]}}
+									%end
+</textarea>
+										
 										
 									</div>
 									
@@ -295,7 +296,7 @@
 
 									placeholder="Bid price">
 									
-									<input name="itemname"
+									<input name="buyoutprice"
 									type="number" step="0.01"
 									%if values[3]!='' and values[3] is not None:
 										value="{{values[3]}}"
@@ -312,15 +313,28 @@
 
 									placeholder="Enter a value between 1 and 89">
 									
-									<p>Item Picture</p>
-									<input type="file"
-									%if values[5]!='' and values[5] is not None:
-										value="{{values[5]}}"
-									%end
-									name="upload" />
+									<script type="text/javascript">
+
+										function PreviewImage() {
+											var oFReader = new FileReader();
+											oFReader.readAsDataURL(document.getElementById("uploadImage").files[0]);
+
+											oFReader.onload = function (oFREvent) {
+												document.getElementById("uploadPreview").src = oFREvent.target.result;
+											};
+										};
+
+									</script>
 									
+								
+									<p>Item Picture</p>
+									<input type="file" name="uploaded" id="uploadImage"  onchange="PreviewImage();" >
+																	
+									<img id="uploadPreview" style="max-width: 500px; max-height: 500px;"/> <!--style="width: 100px; height: 100px;"--> 
+									<div class="row">
 									<button type="submit" class="btn btn-default">Submit Item</button>
-									<form>
+									</div>
+									</form>
 								</div>
 							%end
 							</div>
@@ -493,6 +507,9 @@
 			</div>
 		</div>
 		
+		
+		
+
 	</footer><!--/Footer-->
 	
 
@@ -502,5 +519,6 @@
     <script src="/static/js/jquery.scrollUp.min.js"></script>
     <script src="/static/js/jquery.prettyPhoto.js"></script>
     <script src="/static/js/main.js"></script>
+
 </body>
 </html>

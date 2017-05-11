@@ -5,7 +5,7 @@ import time
 import auth_public as auth
 import psycopg2, psycopg2.extensions, psycopg2.extras
 from decimal import *
-
+import os
 
 static_dir = "./static"
 secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
@@ -321,6 +321,7 @@ def post():
     attrib = 0
     cleanquery = {} #tu shranimo samo ustrezne elemente slovarja query
     values = [None]*6
+    napaka=None
     for i in range(0,5):
         #globina kategorij zaenkrat največ pet
         try:
@@ -354,24 +355,61 @@ def post():
             cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
             seznam_atributov+= cur.fetchall()
         formname=None
+        values[0] = request.forms.get("itemname")
+        values[1] = request.forms.get("message")
+        values[2] = request.forms.get("bidprice") or None
+        values[3] = request.forms.get("buyoutprice") or None
+        values[4] = request.forms.get("expiration") or '89'
+        image = request.files.get("uploaded")
         for atribut in seznam_atributov:
             formname="a"+str(atribut[0])
+            print(formname,request.forms.get(formname))
             values.append(request.forms.get(formname))
-        print(request.forms.itemname)    
-        print(formname,values,request.forms.formname)
-    return template("new.html",
+            
+        print(seznam_atributov)
+
+        #napake:
+        if values[2] is None and values[3] is None:
+            napaka = "At least one price must be specified!"
+        if values[2] is not None and values[3] is not None:
+            if int(values[2]) >= int(values[3]):
+                napaka = "Bid price must be lower than the buyout price!"
+            
+            
+                
+        if not napaka:
+            cur.execute("INSERT INTO items(itemname, categoryid, ownerid, starting_bid, buyout_price,expires,description) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s)",
+                (values[0],cleanquery[max(cleanquery)],curuser[0],values[2],values[3],values[4]+" days",values[1]))
+            cur.execute("SELECT last_value FROM items_itemid_seq")
+            itemid=cur.fetchone()
+            for i in range(6,len(values)):
+                if values[i] is not None:
+                    cur.execute("INSERT INTO attributes(itemid,attributeid,value) VALUES (%s,%s,%s)",
+                                (itemid[0],seznam_atributov[i-6][0],values[i]))
+                          
+            if image is not None:
+                name, ext = os.path.splitext(image.filename)
+                if ext not in ('.png','.jpg','.jpeg'):
+                    napaka = 'Image file extension not allowed.'
+                else:
+                    save_path = os.getcwd()+"\\static\\images\\uploads"            
+                    filename = str(itemid[0]) + ext            
+                    image.filename = filename
+                    image.save(save_path) # appends upload.filename automatically
+
+    
+        return template("new.html",
                            values=values,
                            attrib = attrib,
-                           maxdepth = maxdepth,
                            seznam=seznam_kategorij,
                            seznam_atributov = seznam_atributov,
                            query=query,
                            stanje=curuser[3],
                            username=None,
                            ime=None,
-                           napaka=None,
+                           napaka=napaka,
                            logged=curuser[2])
-
+    
     
 @get("/logout/")
 def logout():
