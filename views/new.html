@@ -168,7 +168,7 @@
 				
 				<div class="row">
 					
-					<div class="col-sm-5">
+					<div class="col-sm-4">
 						<div class="bill-to">
 							<p>Select the category of your item:</p>
 							<div class="form-two">
@@ -229,7 +229,7 @@
 							
 						</div>
 					</div>
-					<div class="col-sm-7 shopper-info">
+					<div class="col-sm-8 shopper-info">
 							
 							<div class="row">
 							%if attrib == 1:
@@ -237,7 +237,12 @@
 								<div class="col-sm-12z shopper-info">
 									<form method=POST>
 									<p>Title</p>
-									<input name="itemname" placeholder="Enter a name for your item">
+									<input name="itemname"
+									%if values[0]!='' and values[0] is not None:
+										value="{{values[0]}}"
+									%end
+
+									placeholder="Enter a name for your item">
 									%if seznam_atributov:
 									<p>Item Attributes</p>
 									%for i in range(len(seznam_atributov)):
@@ -255,8 +260,8 @@
 												%else:
 													NE POZNAM TIPA, ADMIN POPRAVI
 												%end
-												%if values[i]!='':
-												    value="{{values[i]}}"
+												%if values[i]!='' and values[i] is not None:
+												    value="{{values[i+1]}}"
 												%end
 												
 											
@@ -273,13 +278,48 @@
 									%end
 									<div class="order-message">
 										<p>Item description</p>
-										<textarea name="message"  placeholder="Enter a description for your item" rows="16"></textarea>
+										<textarea name="message" 
+										%if values[1]!='' and values[1] is not None:
+											value="{{values[1]}}"
+										%end
+										placeholder="Enter a description for your item" rows="16"></textarea>
 										
 									</div>
-									<div>
-										<input type="file" name="upload" />
-									</div>
-										<button type="submit" class="btn btn-default">Submit Item</button>
+									
+									<p>Pricing (leave empty for no bid/buyout price)</p>
+									<input name="bidprice"
+									type="number" step="0.01"
+									%if values[2]!='' and values[2] is not None:
+										value="{{values[2]}}"
+									%end
+
+									placeholder="Bid price">
+									
+									<input name="itemname"
+									type="number" step="0.01"
+									%if values[3]!='' and values[3] is not None:
+										value="{{values[3]}}"
+									%end
+
+									placeholder="Buyout price">
+									
+									<p>Days until expiration</p>
+									<input name="expiration"
+									type="number" step = "1" min="1" max="89"
+									%if values[4]!='' and values[4] is not None:
+										value="{{values[4]}}"
+									%end
+
+									placeholder="Enter a value between 1 and 89">
+									
+									<p>Item Picture</p>
+									<input type="file"
+									%if values[5]!='' and values[5] is not None:
+										value="{{values[5]}}"
+									%end
+									name="upload" />
+									
+									<button type="submit" class="btn btn-default">Submit Item</button>
 									<form>
 								</div>
 							%end

@@ -256,7 +256,7 @@ def login_get():
     seznam_kategorij.append(cur.fetchall())
     attrib = 0
     cleanquery = {} #tu shranimo samo ustrezne elemente slovarja query
-    values = ['','','']
+    values = [None]*6
     for i in range(0,5):
         #globina kategorij zaenkrat največ pet
         try:
@@ -293,6 +293,7 @@ def login_get():
         for i in seznam_atributov:
             values.append('')
             
+            
     print(seznam_atributov)
     return template("new.html",
                            values = values,
@@ -319,7 +320,7 @@ def post():
     seznam_kategorij.append(cur.fetchall())
     attrib = 0
     cleanquery = {} #tu shranimo samo ustrezne elemente slovarja query
-    values = []
+    values = [None]*6
     for i in range(0,5):
         #globina kategorij zaenkrat največ pet
         try:
@@ -352,10 +353,11 @@ def post():
         for i in cleanquery:
             cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
             seznam_atributov+= cur.fetchall()
-        
+        formname=None
         for atribut in seznam_atributov:
             formname="a"+str(atribut[0])
-            values.append(request.forms.get('formname'))
+            values.append(request.forms.get(formname))
+        print(request.forms.itemname)    
         print(formname,values,request.forms.formname)
     return template("new.html",
                            values=values,
