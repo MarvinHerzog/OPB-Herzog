@@ -256,6 +256,7 @@ def login_get():
     seznam_kategorij.append(cur.fetchall())
     attrib = 0
     cleanquery = {} #tu shranimo samo ustrezne elemente slovarja query
+    values = ['','','']
     for i in range(0,5):
         #globina kategorij zaenkrat največ pet
         try:
@@ -289,8 +290,12 @@ def login_get():
         for i in cleanquery:
             cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
             seznam_atributov+= cur.fetchall()
+        for i in seznam_atributov:
+            values.append('')
+            
     print(seznam_atributov)
     return template("new.html",
+                           values = values,
                            attrib = attrib,
                            maxdepth = maxdepth,
                            seznam=seznam_kategorij,
@@ -303,7 +308,67 @@ def login_get():
                            logged=curuser[2])
 
 
+@post("/new/")
+def post():
+    maxdepth = 99 #mogoče nepotrebno
+    curuser = get_user(auto_login=True)
+    query = dict(request.query) #poberemo parametre iz query stringa, shranimo v slovar
+    seznam_kategorij = []#seznam seznamov kategorij (po globinah)
+    seznam_atributov = []
+    cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid is NULL") #dobi vse kategorije globine 0 in jih spravi v seznam kategorij
+    seznam_kategorij.append(cur.fetchall())
+    attrib = 0
+    cleanquery = {} #tu shranimo samo ustrezne elemente slovarja query
+    values = []
+    for i in range(0,5):
+        #globina kategorij zaenkrat največ pet
+        try:
+            ustreznost="krneki"     
+            if i >0:
+                #query stringi se lahko pomešajo, napačni inputi itd. Ta if preveri, če hiearhija res drži, sicer vrne napako
+                cur.execute("SELECT categoryid,category_name FROM categories WHERE categoryid = %s AND parentid = %s",[query[str(i)],query[str(i-1)]])
+                ustreznost=cur.fetchone()
+            if ustreznost == None:
+                raise
+            else:
+                #če je vse v redu, dobi vse podkategorije izbrane kategorije in jih spravi v seznam seznamov
+                cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid = %s",[int(query[str(i)])])
+                result = cur.fetchall()
+                cleanquery[str(i)] = query[str(i)]
+                if not result:
+                    attrib = 1
+                    break
+                else:
+                    seznam_kategorij.append(result)                   
+        except:
+            #če pride do napake (npr. query stringa ni bilo za dan 'i') nastavi vrednost v slovarju na dummy, da ga html ignorira
+            query[str(i)] = "dummy"
+            
 
+
+    if attrib == 1:
+        #če smo izbrali končno kategorijo, izberemo atribute za predmet:
+        
+        for i in cleanquery:
+            cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
+            seznam_atributov+= cur.fetchall()
+        
+        for atribut in seznam_atributov:
+            formname="a"+str(atribut[0])
+            values.append(request.forms.get('formname'))
+        print(formname,values,request.forms.formname)
+    return template("new.html",
+                           values=values,
+                           attrib = attrib,
+                           maxdepth = maxdepth,
+                           seznam=seznam_kategorij,
+                           seznam_atributov = seznam_atributov,
+                           query=query,
+                           stanje=curuser[3],
+                           username=None,
+                           ime=None,
+                           napaka=None,
+                           logged=curuser[2])
 
     
 @get("/logout/")
