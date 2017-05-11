@@ -143,6 +143,7 @@ def login_post():
         # Username in geslo se ne ujemata
         return template("login.html",
                                napaka="No such user",
+							   logged=None,
                                username=username)
     else:
         # Vse je v redu, nastavimo cookie in preusmerimo na glavno stran
