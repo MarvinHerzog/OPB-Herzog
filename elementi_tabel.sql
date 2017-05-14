@@ -35,6 +35,16 @@ INSERT INTO categories(category_name,parentid) VALUES ('Brass',49);
 INSERT INTO categories(category_name,parentid) VALUES ('Pianos, Keyboards & Organs',49);
 INSERT INTO categories(category_name,parentid) VALUES ('Accordions',49);
 
+INSERT INTO categories(category_name,parentid) VALUES ('Games',NULL);
+INSERT INTO categories(category_name,parentid) VALUES ('Board Games & Cards',57);
+INSERT INTO categories(category_name,parentid) VALUES ('Computer Games',57);
+INSERT INTO categories(category_name,parentid) VALUES ('Other',57);
+
+INSERT INTO categories(category_name,parentid) VALUES ('Online Games',59);
+INSERT INTO categories(category_name,parentid) VALUES ('League of Legends',61);
+
+INSERT INTO categories(category_name,parentid) VALUES ('Accounts',62);
+INSERT INTO categories(category_name,parentid) VALUES ('Boosting (for noobs like Mare)',62);
 
 
 
@@ -65,4 +75,6 @@ INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Age(yea
  INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Fur Color','TEXT',39);
  INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Fur Color','TEXT',7);
  
+  INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Height','TEXT',6);
+  INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Weight','TEXT',6);
  
