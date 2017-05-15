@@ -46,6 +46,13 @@ INSERT INTO categories(category_name,parentid) VALUES ('League of Legends',61);
 INSERT INTO categories(category_name,parentid) VALUES ('Accounts',62);
 INSERT INTO categories(category_name,parentid) VALUES ('Boosting (for noobs like Mare)',62);
 
+INSERT INTO categories(category_name,parentid) VALUES ('Cameras & Photo',NULL);
+
+INSERT INTO categories(category_name,parentid) VALUES ('Cameras',72);
+INSERT INTO categories(category_name,parentid) VALUES ('Lenses & Filters',72);
+INSERT INTO categories(category_name,parentid) VALUES ('Camcorders',72);
+INSERT INTO categories(category_name,parentid) VALUES ('Tripods & Supports',72);
+
 
 
 /*Pri dodajanju atributov za kategorije VEDNO daj atribut staršu,
@@ -78,3 +85,18 @@ INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Age(yea
   INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Height','TEXT',6);
   INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Weight','TEXT',6);
  
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Brand','TEXT',49);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Number of strings','INTEGER',50);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Number of strings','INTEGER',51);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Material','TEXT',49);
+
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Number of keys','INTEGER',53);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Number of keys','TEXT',54);
+
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Type','TEXT',50);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Type','TEXT',51);
+
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Brand','TEXT',72);
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Type','TEXT',73);
+
+INSERT INTO cat_attrib(attributename,attributeclass,categoryid) VALUES ('Type','TEXT',76);
