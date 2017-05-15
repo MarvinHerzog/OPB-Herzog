@@ -94,10 +94,43 @@ def index_get():
                            logged=curuser[2],                    
                            username=None)
 
+
 @get("/shop/")
 def shop_get():
     """Serviraj formo za shop."""
     curuser = get_user()
+    return template("shop.html",
+                           napaka=None,
+                           stanje=curuser[3],
+                           logged=curuser[2])
+
+
+
+@get("/shop/<catid>/")
+def shop_get(catid):
+    """Serviraj formo za shop."""
+    curuser = get_user()
+    print(catid)
+    cur.execute('''
+                    WITH RECURSIVE x(categoryid,parentid,parents,last_id, depth) AS (
+                      SELECT categoryid, parentid, ARRAY[categoryid] AS parents, categoryid AS last_id, 0 AS depth FROM categories
+                      UNION ALL
+                      SELECT x.categoryid, x.parentid, parents||t1.parentid, t1.parentid AS last_id, x.depth + 1
+                      FROM x 
+                        INNER JOIN categories t1 
+                        ON (last_id= t1.categoryid)
+                      WHERE t1.parentid IS NOT NULL
+                    )
+                    SELECT categoryid, parentid, array_to_string(parents,';'),parents
+                    FROM x 
+                    WHERE depth = (SELECT max(sq.depth) FROM x sq WHERE sq.categoryid = x.categoryid) AND categoryid=%s;
+                ''',[catid])
+    rezultat = cur.fetchone()
+    print(rezultat)
+
+
+
+    
     return template("shop.html",
                            napaka=None,
                            stanje=curuser[3],
@@ -389,7 +422,7 @@ def post():
                           
             if image is not None:
                 name, ext = os.path.splitext(image.filename)
-                if ext not in ('.png','.jpg','.jpeg'):
+                if ext.lower() not in ('.png','.jpg','.jpeg'):
                     napaka = 'Image file extension not allowed.'
                 else:
                     save_path = os.getcwd()+"\\static\\images\\uploads"            
