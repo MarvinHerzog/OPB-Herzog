@@ -133,6 +133,8 @@ def shop_get():
     podkategorije=cur.fetchall()
     print(podkategorije)
     return template("shop.html",
+                           query={},
+                           atributi = [],
                            starsi=[],
                            napaka=None,
                            podkategorije = podkategorije,
@@ -150,15 +152,77 @@ def shop_get(catid):
     podkategorije=cur.fetchall()
     cur.execute("SELECT * FROM cat_attrib WHERE categoryid = ANY(%s)",[[i[0] for i in starsi]])
     atributi = cur.fetchall()
+    cur.execute("SELECT * FROM attributes WHERE attributeid = ANY(%s)",[[i[0] for i in atributi]])
+    vrednosti_atributov = cur.fetchall()
+    vrednosti_atributov = list(set([(i[1],i[2]) for i in vrednosti_atributov]))
     #cur.execute("")
+    query = dict(request.query)
+    cleanquery= {i:query[i] for i in query if query[i]!=''}
+    textquery = tuple([(i,cleanquery[i]) for i in cleanquery if 'max' not in i and 'min' not in i])
+    intquery =  {i:cleanquery[i] for i in cleanquery if ('max'  in i or 'min'  in i) and ('bo' not in i and 'bid' not in i)}
+    print(query,cleanquery)
+    print(textquery,intquery)
     print(atributi)
-    print(starsi)
-    print(podkategorije)
 
+    parameters = []
+    parameters.append(textquery)
+    length = len(textquery)
+    ORstring=''
+    for i in [t[0] for t in atributi if t[2] == 'INTEGER']:
+        c = 0
+        try:
+            intquery[str(i)+'min']
+            c +=1
+        except:
+            pass
+        try:
+            intquery[str(i)+'max']
+            c +=2
+        except:
+            pass
+        if c == 3:
+            length+=1
+            ORstring += 'OR (attributeid =%s AND value::integer >= %s AND value::integer <= %s)\n'
+            parameters = parameters + [i,intquery[str(i)+'min'],intquery[str(i)+'max']]
+        elif c== 2:
+            length+=1
+            ORstring += 'OR (attributeid =%s AND value::integer <= %s)\n'
+            parameters = parameters + [i,intquery[str(i)+'max']]
+        elif c== 1:
+            length+=1
+            ORstring += 'OR (attributeid =%s AND value::integer >= %s)\n'
+            parameters = parameters + [i,intquery[str(i)+'min']]
+    
+    print(ORstring)
+
+
+    print(length)
+    parameters.append(length)
+    print(parameters)
+    
+  
+        #OR (attributeid =4 AND value::integer >= 1 AND value::integer <= 4)      
+    cur.execute('''
+        SELECT itemid from attributes where (attributeid,value) IN %s\n'''+ORstring+'''
+
+
+        GROUP BY itemid
+        HAVING count(*) = %s
+                ''',parameters)
+    test=cur.fetchall()
+    print(test)
+    
+    
 
 
     
+    #cur.execute(""
+
+    
     return template("shop.html",
+                           query=query,
+                           vrednosti_atributov=vrednosti_atributov,
+                           atributi = atributi,
                            starsi=starsi,
                            napaka=None,
                            podkategorije = podkategorije,

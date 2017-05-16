@@ -175,7 +175,7 @@
 					<div class="left-sidebar">
 					
 					%if podkategorije:
-						<h2>Category</h2>
+						<h2>Categories</h2>
 						<div class="panel-group category-products" id="accordian"><!--category-productsr-->
 						<!--
 							<div class="panel panel-default">
@@ -257,24 +257,133 @@
 							%end
 						</div><!--/category-productsr-->
 					%end 
-						<form action=".">
-						  <select name="cars">
-							<option value="volvo">Volvo</option>
-							<option value="saab">Saab</option>
-							<option value="fiat">Fiat</option>
-							<option value="audi">Audi</option>
+					
+					<h2>Filter Results</h2>						
+					<form action=".">
+						Bid price:
+							<div class ="row">
+								<div class="shopper-info col-sm-6"> 
+									<input type="number" step="1" placeholder="Min" name="bidmin"
+									%try:
+									%if query['bidmin'] != '':
+										value = {{query['bidmin']}}
+									%end
+									%except:
+										%pass
+									%end
+									>
+								</div>
+								
+								<div class="shopper-info col-sm-6"> 
+									<input type="number" step="1" placeholder="Max" name="bidmax"
+									%try:									
+									%if query['bidmax'] != '':
+										value = {{query['bidmax']}}
+									%end
+									%except:
+										%pass
+									%end
+									>
+								</div>
+							</div>
+							Buyout price:
+							<div class ="row">
+								<div class="shopper-info col-sm-6"> 
+									<input type="number" step="1" placeholder="Min" name="bomin"
+									%try:
+									%if query['bomin'] != '':
+										value = {{query['bomin']}}
+									%end									
+									%except:
+										%pass
+									%end
+									>
+								</div>
+								
+								<div class="shopper-info col-sm-6"> 
+									<input type="number" step="1" placeholder="Max" name="bomax"									
+									%try:
+									%if query['bomax'] != '':
+										value = {{query['bomax']}}
+									%end
+									%except:
+										%pass
+									%end
+									>
+								</div>
+							</div>
+					
+					%if atributi:
+						
+						%for attribute in [i for i in atributi if i[2].lower() == "text"]:
+						  {{attribute[1]}}:
+						  <select name="{{attribute[0]}}"> 
+						  <option value=''>Any</option>
+							%for value in [i for i in vrednosti_atributov if i[0]==attribute[0]]:
+								
+								<option value="{{value[1]}}"
+								%try:
+									%if query[str(attribute[0])] == value[1]:
+										selected
+									%end
+								%except:
+									%pass
+								%end
+								
+								>{{value[1]}}</option>
+							%end
 						  </select>
 						  <br><br>
-						  <button type="submit" class="btn btn-default">Signup</button>
+						%end
+					
+						%for attribute in [i for i in atributi if i[2].lower() == "integer"]:
+							{{attribute[1]}}:
+							<div class ="row">
+								<div class="shopper-info col-sm-6"> 
+									<input type="number" step="1" placeholder="Min" name="{{attribute[0]}}min"
+									%try:
+									%if query[str(attribute[0])+'min'] != '':
+										value = {{query[str(attribute[0])+'min']}}
+									%end
+									%except:
+										%pass
+									%end
+									>
+								</div>
+								
+								<div class="shopper-info col-sm-6"> 
+									<input type="number" step="1" placeholder="Max" name="{{attribute[0]}}max"
+									%try:
+									%if query[str(attribute[0])+'max'] != '':
+										value = {{query[str(attribute[0])+'max']}}
+									%end
+									%except:
+										%pass
+									%end
+									>
+								</div>
+							</div>
+						%end
+					%end					
+						
+							
+							
+						  <div class="price-range"><!--price-range-->
+							<h2>Price Range</h2>
+						  	<div class="well">
+						  		 <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600" data-slider-step="5" data-slider-value="[250,450]" id="sl2" ><br />
+						  		 <b>$ 0</b> <b class="pull-right">$ 600</b>
+							</div>
+						  </div><!--/price-range-->
+						  
+						  <br><br>
+
+						  
+						  
+						  <button type="submit" class="btn btn-default">Filter</button>
 						</form><!--/brands_products-->
 						
-						<div class="price-range"><!--price-range-->
-							<h2>Price Range</h2>
-							<div class="well">
-								 <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600" data-slider-step="5" data-slider-value="[250,450]" id="sl2" ><br />
-								 <b>$ 0</b> <b class="pull-right">$ 600</b>
-							</div>
-						</div><!--/price-range-->
+						
 						
 
 						
