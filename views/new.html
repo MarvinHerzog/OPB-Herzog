@@ -160,7 +160,11 @@
 			</div><!--/breadcrums-->
 
 			<div class="shopper-informations">
-				%if napaka:
+				%if napaka == "Item successfully submitted!":
+				<div class="row" >
+					<h5 style="background: rgba(0, 255, 0, 0.49); text-align: center;">{{napaka}}</h5>
+				<div>
+				%elif napaka:
 				<div class="row" >
 					<h5 style="background: rgba(255, 0, 0, 0.49); text-align: center;">{{napaka}}</h5>
 				<div>
@@ -332,6 +336,7 @@
 																	
 									<img id="uploadPreview" style="max-width: 500px; max-height: 500px;"/> <!--style="width: 100px; height: 100px;"--> 
 									<div class="row">
+									<br><br>
 									<button type="submit" class="btn btn-default">Submit Item</button>
 									</div>
 									</form>

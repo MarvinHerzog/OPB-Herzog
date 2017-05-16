@@ -162,11 +162,22 @@
 	
 	<section>
 		<div class="container">
+		<div class="breadcrumbs">
+				<ol class="breadcrumb">
+				  <li><a href="/shop/">Home</a></li>	
+				  %for stars in starsi:
+				  <li class="active"><a href="/shop/{{stars[0]}}/">{{stars[1]}}</a></li>
+				  %end
+				</ol>
+			</div><!--/breadcrums-->
 			<div class="row">
 				<div class="col-sm-3">
 					<div class="left-sidebar">
+					
+					%if podkategorije:
 						<h2>Category</h2>
 						<div class="panel-group category-products" id="accordian"><!--category-productsr-->
+						<!--
 							<div class="panel panel-default">
 								<div class="panel-heading">
 									<h4 class="panel-title">
@@ -236,57 +247,26 @@
 									</div>
 								</div>
 							</div>
+							-->
+							%for element in podkategorije:
 							<div class="panel panel-default">
 								<div class="panel-heading">
-									<h4 class="panel-title"><a href="#">Kids</a></h4>
+									<h4 class="panel-title"><a href="/shop/{{element[0]}}/">{{element[1]}}</a></h4>
 								</div>
 							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title"><a href="#">Fashion</a></h4>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title"><a href="#">Households</a></h4>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title"><a href="#">Interiors</a></h4>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title"><a href="#">Clothing</a></h4>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title"><a href="#">Bags</a></h4>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title"><a href="#">Shoes</a></h4>
-								</div>
-							</div>
+							%end
 						</div><!--/category-productsr-->
-					
-						<div class="brands_products"><!--brands_products-->
-							<h2>Brands</h2>
-							<div class="brands-name">
-								<ul class="nav nav-pills nav-stacked">
-									<li><a href=""> <span class="pull-right">(50)</span>Acne</a></li>
-									<li><a href=""> <span class="pull-right">(56)</span>Grüne Erde</a></li>
-									<li><a href=""> <span class="pull-right">(27)</span>Albiro</a></li>
-									<li><a href=""> <span class="pull-right">(32)</span>Ronhill</a></li>
-									<li><a href=""> <span class="pull-right">(5)</span>Oddmolly</a></li>
-									<li><a href=""> <span class="pull-right">(9)</span>Boudestijn</a></li>
-									<li><a href=""> <span class="pull-right">(4)</span>Rösch creative culture</a></li>
-								</ul>
-							</div>
-						</div><!--/brands_products-->
+					%end 
+						<form action=".">
+						  <select name="cars">
+							<option value="volvo">Volvo</option>
+							<option value="saab">Saab</option>
+							<option value="fiat">Fiat</option>
+							<option value="audi">Audi</option>
+						  </select>
+						  <br><br>
+						  <button type="submit" class="btn btn-default">Signup</button>
+						</form><!--/brands_products-->
 						
 						<div class="price-range"><!--price-range-->
 							<h2>Price Range</h2>
@@ -303,11 +283,16 @@
 						</div><!--/shipping-->
 						
 					</div>
+					
 				</div>
 				
 				<div class="col-sm-9 padding-right">
 					<div class="features_items"><!--features_items-->
-						<h2 class="title text-center">Features Items</h2>
+					%if starsi:
+						<h2 class="title text-center">{{starsi[-1][1]}}</h2>
+					%else:
+						<h2 class="title text-center">New Items</h2>
+					%end
 						<div class="col-sm-4">
 							<div class="product-image-wrapper">
 								<div class="single-products">

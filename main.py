@@ -61,6 +61,36 @@ def get_user(auto_login = False,auto_redir=False):
     else:
         return [None,None,None,None]
 
+
+def all_cat_parents(catid):
+    
+    cur.execute('''
+                    SELECT starsi,category_name from
+                    (
+                        WITH RECURSIVE x(categoryid,parentid,parents,last_id, depth) AS (
+                          SELECT categoryid, parentid, ARRAY[categoryid] AS parents, categoryid AS last_id, 0 AS depth FROM categories
+                          UNION ALL
+                          SELECT x.categoryid, x.parentid, parents||t1.parentid, t1.parentid AS last_id, x.depth + 1
+                          FROM x 
+                            INNER JOIN categories t1 
+                            ON (last_id= t1.categoryid)
+                          WHERE t1.parentid IS NOT NULL
+                        )
+                        SELECT unnest(parents) as starsi
+
+                        FROM x 
+                        WHERE depth = (SELECT max(sq.depth) FROM x sq WHERE sq.categoryid = x.categoryid) AND categoryid=%s
+                    )
+                    AS parents JOIN categories ON parents.starsi = categories.categoryid
+
+                    
+
+
+                ''',[catid])
+    return(cur.fetchall())
+
+
+
 ##@route("/")
 ##def main():
 ##    (username, ime) = get_user()
@@ -99,11 +129,15 @@ def index_get():
 def shop_get():
     """Serviraj formo za shop."""
     curuser = get_user()
+    cur.execute("SELECT * FROM categories WHERE parentid is NULL")
+    podkategorije=cur.fetchall()
+    print(podkategorije)
     return template("shop.html",
+                           starsi=[],
                            napaka=None,
+                           podkategorije = podkategorije,
                            stanje=curuser[3],
                            logged=curuser[2])
-
 
 
 @get("/shop/<catid>/")
@@ -111,28 +145,23 @@ def shop_get(catid):
     """Serviraj formo za shop."""
     curuser = get_user()
     print(catid)
-    cur.execute('''
-                    WITH RECURSIVE x(categoryid,parentid,parents,last_id, depth) AS (
-                      SELECT categoryid, parentid, ARRAY[categoryid] AS parents, categoryid AS last_id, 0 AS depth FROM categories
-                      UNION ALL
-                      SELECT x.categoryid, x.parentid, parents||t1.parentid, t1.parentid AS last_id, x.depth + 1
-                      FROM x 
-                        INNER JOIN categories t1 
-                        ON (last_id= t1.categoryid)
-                      WHERE t1.parentid IS NOT NULL
-                    )
-                    SELECT categoryid, parentid, array_to_string(parents,';'),parents
-                    FROM x 
-                    WHERE depth = (SELECT max(sq.depth) FROM x sq WHERE sq.categoryid = x.categoryid) AND categoryid=%s;
-                ''',[catid])
-    rezultat = cur.fetchone()
-    print(rezultat)
+    starsi = list(reversed(all_cat_parents(catid)))
+    cur.execute("SELECT * FROM categories WHERE parentid = %s",[catid])
+    podkategorije=cur.fetchall()
+    cur.execute("SELECT * FROM cat_attrib WHERE categoryid = ANY(%s)",[[i[0] for i in starsi]])
+    atributi = cur.fetchall()
+    #cur.execute("")
+    print(atributi)
+    print(starsi)
+    print(podkategorije)
 
 
 
     
     return template("shop.html",
+                           starsi=starsi,
                            napaka=None,
+                           podkategorije = podkategorije,
                            stanje=curuser[3],
                            logged=curuser[2])
 
@@ -430,7 +459,9 @@ def post():
                     image.filename = filename
                     image.save(save_path) # appends upload.filename automatically
 
-    
+        if napaka is None:
+            napaka = "Item successfully submitted!"
+        print(napaka)
         return template("new.html",
                            values=values,
                            attrib = attrib,
