@@ -164,53 +164,96 @@ def shop_get(catid):
     print(textquery,intquery)
     print(atributi)
 
+
+
+    ### Tu sestavimo query za filtracijo predmetov
     parameters = []
     parameters.append(textquery)
     length = len(textquery)
-    ORstring=''
-    for i in [t[0] for t in atributi if t[2] == 'INTEGER']:
-        c = 0
-        try:
-            intquery[str(i)+'min']
-            c +=1
-        except:
-            pass
-        try:
-            intquery[str(i)+'max']
-            c +=2
-        except:
-            pass
-        if c == 3:
-            length+=1
-            ORstring += 'OR (attributeid =%s AND value::integer >= %s AND value::integer <= %s)\n'
-            parameters = parameters + [i,intquery[str(i)+'min'],intquery[str(i)+'max']]
-        elif c== 2:
-            length+=1
-            ORstring += 'OR (attributeid =%s AND value::integer <= %s)\n'
-            parameters = parameters + [i,intquery[str(i)+'max']]
-        elif c== 1:
-            length+=1
-            ORstring += 'OR (attributeid =%s AND value::integer >= %s)\n'
-            parameters = parameters + [i,intquery[str(i)+'min']]
+    ORstring='''
+            SELECT attributes.itemid from attributes
+            JOIN items on items.itemid=attributes.itemid
+            where attributeid = -1\n''' #ne vrne nič, na to vežemo OR stavke da dobimo željene rezultate
+
     
+    #Query za cene
+    
+    if query['bidmin'] != '' and query['bidmin'] != '':
+        ORstring += 'AND (starting_bid >= %s AND starting_bid <= %s)\n'
+        parameters = parameters + [query['bidmin'],query['bidmax']]
+    elif query['bidmin'] != '': 
+        ORstring += 'AND (starting_bid >= %s)\n'
+        parameters = parameters + [query['bidmin']]
+    elif query['bidmin'] != '': 
+        ORstring += 'AND (starting_bid <= %s)\n'
+        parameters = parameters + [query['bidmin']]
+    
+    
+    #Tekstovni parametri
+    if textquery:
+        ORstring += '''OR (attributeid,value) IN %s\n'''
+
+    #Številčni parametri, ki niso cena
+    for i in [t[0] for t in atributi if t[2] == 'INTEGER']:
+              if query[str(i)+'min'] != '' and query[str(i)+'max'] != '':
+                length+=1
+                ORstring += 'OR (attributeid =%s AND value::integer >= %s AND value::integer <= %s)\n'
+                parameters = parameters + [i,intquery[str(i)+'min'],intquery[str(i)+'max']]
+              elif query[str(i)+'min'] != '': 
+                length+=1
+                ORstring += 'OR (attributeid =%s AND value::integer >= %s)\n'
+                parameters = parameters + [i,intquery[str(i)+'min']]
+              elif query[str(i)+'max'] != '': 
+                length+=1
+                ORstring += 'OR (attributeid =%s AND value::integer <= %s)\n'
+                parameters = parameters + [i,intquery[str(i)+'max']]
+
+              
+##    for i in [t[0] for t in atributi if t[2] == 'INTEGER']:
+##        c = 0
+##        try:
+##            intquery[str(i)+'min']
+##            c +=1
+##        except:
+##            pass
+##        try:
+##            intquery[str(i)+'max']
+##            c +=2
+##        except:
+##            pass
+##        if c == 3:
+##            length+=1
+##            ORstring += 'OR (attributeid =%s AND value::integer >= %s AND value::integer <= %s)\n'
+##            parameters = parameters + [i,intquery[str(i)+'min'],intquery[str(i)+'max']]
+##        elif c== 2:
+##            length+=1
+##            ORstring += 'OR (attributeid =%s AND value::integer <= %s)\n'
+##            parameters = parameters + [i,intquery[str(i)+'max']]
+##        elif c== 1:
+##            length+=1
+##            ORstring += 'OR (attributeid =%s AND value::integer >= %s)\n'
+##            parameters = parameters + [i,intquery[str(i)+'min']]
+
+
     print(ORstring)
 
 
     print(length)
     parameters.append(length)
     print(parameters)
-    
+    ###
   
         #OR (attributeid =4 AND value::integer >= 1 AND value::integer <= 4)      
-    cur.execute('''
-        SELECT itemid from attributes where (attributeid,value) IN %s\n'''+ORstring+'''
+    if length>0:        
+        cur.execute(
+            ORstring+'''
 
 
-        GROUP BY itemid
-        HAVING count(*) = %s
-                ''',parameters)
-    test=cur.fetchall()
-    print(test)
+            GROUP BY itemid
+            HAVING count(*) = %s
+                    ''',parameters) #Izberemo tiste predmete, ki ustrezajo vsem filtrom
+        print(str(cur.query))
+        test=cur.fetchall()
     
     
 
