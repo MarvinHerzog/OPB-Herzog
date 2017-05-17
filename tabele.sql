@@ -39,11 +39,12 @@ create table items(
     itemname TEXT NOT NULL,
     categoryID int NOT NULL REFERENCES categories(categoryID) ON DELETE CASCADE,
     ownerID int NOT NULL REFERENCES users(userID) ON DELETE CASCADE,
-    starting_bid numeric(9,2),
-    buyout_price numeric(9,2),
+    bid numeric(9,2),
+    buyout numeric(9,2),
     posted_date TIMESTAMP DEFAULT now() NOT NULL,
     expires TIMESTAMP NOT NULL,
     description TEXT NOT NULL,
+	current_bidder INT REFERENCES users(userID),
     CONSTRAINT expires_too_fast CHECK (expires >= posted_date + interval '24 hours'), /*bid<buyout constraint v .py */
     CONSTRAINT expires_too_late CHECK (expires <= posted_date + interval '3 months'),
     CONSTRAINT no_price CHECK(starting_bid IS NOT NULL OR buyout_price IS NOT NULL)
@@ -62,6 +63,10 @@ create table cat_attrib(
 	attributeclass TEXT NOT NULL,
 	categoryID int REFERENCES categories(categoryID) ON DELETE CASCADE
 	); /*podkategorija naj implicitno deduje atribute vseh svojih starsev */
+	
+CREATE TABLE images (
+	itemID int REFERENCES items(ITEMID) NOT NULL,
+	imagename TEXT NOT NULL UNIQUE);
     
 CREATE TABLE sold_expired(
     itemID serial primary key NOT NULL,

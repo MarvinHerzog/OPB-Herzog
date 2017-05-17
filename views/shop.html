@@ -263,7 +263,7 @@
 						Bid price:
 							<div class ="row">
 								<div class="shopper-info col-sm-6"> 
-									<input type="number" step="1" placeholder="Min" name="bidmin"
+									<input type="number" step="1" placeholder="Min" name="bidmin" min="1"
 									%try:
 									%if query['bidmin'] != '':
 										value = {{query['bidmin']}}
@@ -275,7 +275,7 @@
 								</div>
 								
 								<div class="shopper-info col-sm-6"> 
-									<input type="number" step="1" placeholder="Max" name="bidmax"
+									<input type="number" step="1" placeholder="Max" name="bidmax" 
 									%try:									
 									%if query['bidmax'] != '':
 										value = {{query['bidmax']}}
@@ -289,7 +289,7 @@
 							Buyout price:
 							<div class ="row">
 								<div class="shopper-info col-sm-6"> 
-									<input type="number" step="1" placeholder="Min" name="bomin"
+									<input type="number" step="1" placeholder="Min" name="bomin" min="1"
 									%try:
 									%if query['bomin'] != '':
 										value = {{query['bomin']}}
@@ -367,8 +367,8 @@
 					%end					
 						
 							
-							
-						  <div class="price-range"><!--price-range-->
+							<!--price-range
+						  <div class="price-range">
 							<h2>Price Range</h2>
 						  	<div class="well">
 						  		 <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600" data-slider-step="5" data-slider-value="[250,450]" id="sl2" ><br />
@@ -387,7 +387,7 @@
 						
 
 						
-						<div class="shipping text-center"><!--shipping-->
+						<!--shipping- <div class="shipping text-center">
 							<img src="/static/images/home/shipping.jpg" alt="" />
 						</div><!--/shipping-->
 						
@@ -402,13 +402,44 @@
 					%else:
 						<h2 class="title text-center">New Items</h2>
 					%end
+					
+					
+					%for i in range(1,min(13,len(predmeti)+1)):
 						<div class="col-sm-4">
 							<div class="product-image-wrapper">
 								<div class="single-products">
 									<div class="productinfo text-center">
-										<img src="/static/images/shop/product12.jpg" alt="" />
-										<h2>$56</h2>
-										<p>Easy Polo Black Edition</p>
+									%try:
+										%pic = slike[predmeti[i-1][0]]
+										<img src="/static/images/uploads/{{pic}}" alt="" style="max-width: 200px; max-height: 300px;"/>
+									%except:
+										<img src="/static/images/shop/product11.jpg" alt="" />
+									%end
+
+										<p>{{predmeti[i-1][1]}}</p>
+										<div class='row'>
+											
+											%if predmeti[i-1][4]:
+												Bid
+											%end
+											
+											%if predmeti[i-1][5]:
+												Buyout
+											%end
+											
+										</div>
+										<div class='row'>
+											
+											%if predmeti[i-1][4]:
+												{{predmeti[i-1][4]}}€
+											%end
+											
+											%if predmeti[i-1][5]:
+												{{predmeti[i-1][5]}}€
+											%end
+											
+										</div>										
+										
 										<a href="#" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
 									</div>
 									<div class="product-overlay">
@@ -427,6 +458,8 @@
 								</div>
 							</div>
 						</div>
+					%end
+						<!--
 						<div class="col-sm-4">
 							<div class="product-image-wrapper">
 								<div class="single-products">
@@ -712,7 +745,7 @@
 								</div>
 							</div>
 						</div>
-						
+						-->
 					</div><!--features_items-->
 					<div class='row'>
 						<ul class="pagination">

@@ -62,7 +62,7 @@ def get_user(auto_login = False,auto_redir=False):
         return [None,None,None,None]
 
 
-def all_cat_parents(catid):
+def get_cat_parents(catid):
     
     cur.execute('''
                     SELECT starsi,category_name from
@@ -132,8 +132,53 @@ def shop_get():
     cur.execute("SELECT * FROM categories WHERE parentid is NULL")
     podkategorije=cur.fetchall()
     print(podkategorije)
+    query = dict(request.query)
+
+
+    ORstring='''
+        SELECT items.itemid,itemname,categoryid,ownerid,bid,buyout,posted_date,expires FROM items         
+        WHERE 1=1\n'''  
+    parameters = []
+    #Query za cene
+    for i in ['bidmin','bidmax','bomin','bomax']:
+        try:
+            krnekaj = query[i]
+        except:
+            query[i] = ''
+
+    print(query)
+    if query['bidmin'] != '' and query['bidmin'] != '':
+        ORstring += 'AND (bid >= %s AND bid <= %s)\n'
+        parameters = parameters + [query['bidmin'],query['bidmax']]
+    elif query['bidmin'] != '': 
+        ORstring += 'AND (bid >= %s)\n'
+        parameters = parameters + [query['bidmin']]
+    elif query['bidmax'] != '': 
+        ORstring += 'AND (bid <= %s OR bid IS NULL)\n'
+        parameters = parameters + [query['bidmax']]
+
+    if query['bomin'] != '' and query['bomin'] != '':
+        ORstring += 'AND (buyout >= %s AND buyout <= %s)\n'
+        parameters = parameters + [query['bomin'],query['bomax']]
+    elif query['bomin'] != '': 
+        ORstring += 'AND (buyout >= %s)\n'
+        parameters = parameters + [query['bomin']]
+    elif query['bomax'] != '': 
+        ORstring += 'AND (buyout <= %s OR buyout IS NULL)\n'
+        parameters = parameters + [query['bomax']]
+                  
+    cur.execute(ORstring,parameters)
+    predmeti=cur.fetchall()
+    for i in predmeti: print(i)
+    
+    cur.execute("SELECT * FROM images WHERE itemid = ANY(%s)",[[i[0] for i in predmeti]])
+    slike = cur.fetchall()
+    slike = {i[0]:i[1] for i in slike}
+    
     return template("shop.html",
-                           query={},
+                           predmeti=predmeti,
+                           slike=slike,                    
+                           query=query,
                            atributi = [],
                            starsi=[],
                            napaka=None,
@@ -147,7 +192,7 @@ def shop_get(catid):
     """Serviraj formo za shop."""
     curuser = get_user()
     print(catid)
-    starsi = list(reversed(all_cat_parents(catid)))
+    starsi = list(reversed(get_cat_parents(catid)))
     cur.execute("SELECT * FROM categories WHERE parentid = %s",[catid])
     podkategorije=cur.fetchall()
     cur.execute("SELECT * FROM cat_attrib WHERE categoryid = ANY(%s)",[[i[0] for i in starsi]])
@@ -168,33 +213,37 @@ def shop_get(catid):
 
     ### Tu sestavimo query za filtracijo predmetov
     parameters = []
-    parameters.append(textquery)
-    length = len(textquery)
+    
+    length = 0
     ORstring='''
-            SELECT attributes.itemid from attributes
-            JOIN items on items.itemid=attributes.itemid
-            where attributeid = -1\n''' #ne vrne nič, na to vežemo OR stavke da dobimo željene rezultate
+            SELECT items.itemid,itemname,categoryid,ownerid,bid,buyout,posted_date,expires FROM items
+            '''
 
+    if len(intquery)+len(textquery)>0:
+        ORstring+= '''
+            RIGHT JOIN (           
+            SELECT itemid from attributes where attributeid = -1\n'''     #ne vrne nič, na to vežemo OR stavke da dobimo željene rezultate
+            
     
-    #Query za cene
-    
-    if query['bidmin'] != '' and query['bidmin'] != '':
-        ORstring += 'AND (starting_bid >= %s AND starting_bid <= %s)\n'
-        parameters = parameters + [query['bidmin'],query['bidmax']]
-    elif query['bidmin'] != '': 
-        ORstring += 'AND (starting_bid >= %s)\n'
-        parameters = parameters + [query['bidmin']]
-    elif query['bidmin'] != '': 
-        ORstring += 'AND (starting_bid <= %s)\n'
-        parameters = parameters + [query['bidmin']]
-    
+
     
     #Tekstovni parametri
     if textquery:
+        parameters.append(textquery)
+        length += len(textquery)
         ORstring += '''OR (attributeid,value) IN %s\n'''
 
     #Številčni parametri, ki niso cena
     for i in [t[0] for t in atributi if t[2] == 'INTEGER']:
+              try:
+                  krneki = query[str(i)+'min']
+              except:
+                  query[str(i)+'min'] = ''
+              try:
+                  krneki = query[str(i)+'max']
+              except:
+                  query[str(i)+'max'] = ''
+                  
               if query[str(i)+'min'] != '' and query[str(i)+'max'] != '':
                 length+=1
                 ORstring += 'OR (attributeid =%s AND value::integer >= %s AND value::integer <= %s)\n'
@@ -208,61 +257,79 @@ def shop_get(catid):
                 ORstring += 'OR (attributeid =%s AND value::integer <= %s)\n'
                 parameters = parameters + [i,intquery[str(i)+'max']]
 
-              
-##    for i in [t[0] for t in atributi if t[2] == 'INTEGER']:
-##        c = 0
-##        try:
-##            intquery[str(i)+'min']
-##            c +=1
-##        except:
-##            pass
-##        try:
-##            intquery[str(i)+'max']
-##            c +=2
-##        except:
-##            pass
-##        if c == 3:
-##            length+=1
-##            ORstring += 'OR (attributeid =%s AND value::integer >= %s AND value::integer <= %s)\n'
-##            parameters = parameters + [i,intquery[str(i)+'min'],intquery[str(i)+'max']]
-##        elif c== 2:
-##            length+=1
-##            ORstring += 'OR (attributeid =%s AND value::integer <= %s)\n'
-##            parameters = parameters + [i,intquery[str(i)+'max']]
-##        elif c== 1:
-##            length+=1
-##            ORstring += 'OR (attributeid =%s AND value::integer >= %s)\n'
-##            parameters = parameters + [i,intquery[str(i)+'min']]
+   
+    if length>0:
+        parameters.append(length)
+        ORstring+='''
+                GROUP BY attributes.itemid
+                HAVING count(attributes.itemid) = %s
+                ) AS filter on items.itemid = filter.itemid
+                '''   
+    ORstring +='''
+            WHERE (categoryid = ANY(get_all_children_array(%s)) OR categoryid = %s)\n'''
+    
+    parameters=parameters+[catid,catid]   
+    #Query za cene
+    for i in ['bidmin','bidmax','bomin','bomax']:
+        try:
+            krnekaj = query[i]
+        except:
+            query[i] = ''
+
+    
+    if query['bidmin'] != '' and query['bidmin'] != '':
+        ORstring += 'AND (bid >= %s AND bid <= %s)\n'
+        parameters = parameters + [query['bidmin'],query['bidmax']]
+    elif query['bidmin'] != '': 
+        ORstring += 'AND (bid >= %s)\n'
+        parameters = parameters + [query['bidmin']]
+    elif query['bidmax'] != '': 
+        ORstring += 'AND (bid <= %s OR bid IS NULL)\n'
+        parameters = parameters + [query['bidmax']]
+
+    if query['bomin'] != '' and query['bomin'] != '':
+        ORstring += 'AND (buyout >= %s AND buyout <= %s)\n'
+        parameters = parameters + [query['bomin'],query['bomax']]
+    elif query['bomin'] != '': 
+        ORstring += 'AND (buyout >= %s)\n'
+        parameters = parameters + [query['bomin']]
+    elif query['bomax'] != '': 
+        ORstring += 'AND (buyout <= %s OR buyout IS NULL)\n'
+        parameters = parameters + [query['bomax']]
+                  
+
+
+
 
 
     print(ORstring)
 
 
     print(length)
-    parameters.append(length)
     print(parameters)
-    ###
   
-        #OR (attributeid =4 AND value::integer >= 1 AND value::integer <= 4)      
-    if length>0:        
-        cur.execute(
-            ORstring+'''
-
-
-            GROUP BY itemid
-            HAVING count(*) = %s
-                    ''',parameters) #Izberemo tiste predmete, ki ustrezajo vsem filtrom
-        print(str(cur.query))
-        test=cur.fetchall()
+          
+    cur.execute(
+        ORstring,parameters) #Izberemo tiste predmete, ki ustrezajo vsem filtrom
+    print(str(cur.query))
     
+    predmeti=cur.fetchall()
+    print(predmeti,'\n\n\n')
+    for i in predmeti: print(i)
     
 
-
+    ## dobi slike
+    cur.execute("SELECT * FROM images WHERE itemid = ANY(%s)",[[i[0] for i in predmeti]])
+    slike = cur.fetchall()
+    slike = {i[0]:i[1] for i in slike}
+    print(slike)
     
     #cur.execute(""
 
     
     return template("shop.html",
+                           slike=slike,                     
+                           predmeti=predmeti,
                            query=query,
                            vrednosti_atributov=vrednosti_atributov,
                            atributi = atributi,
@@ -547,7 +614,7 @@ def post():
             
                 
         if not napaka:
-            cur.execute("INSERT INTO items(itemname, categoryid, ownerid, starting_bid, buyout_price,expires,description) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s)",
+            cur.execute("INSERT INTO items(itemname, categoryid, ownerid, bid, buyout,expires,description,current_bidder) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s,NULL)",
                 (values[0],cleanquery[max(cleanquery)],curuser[0],values[2],values[3],values[4]+" days",values[1]))
             cur.execute("SELECT last_value FROM items_itemid_seq")
             itemid=cur.fetchone()
@@ -565,7 +632,9 @@ def post():
                     filename = str(itemid[0]) + ext            
                     image.filename = filename
                     image.save(save_path) # appends upload.filename automatically
+                    cur.execute("INSERT INTO images (itemid,imagename) values (%s,%s)",[itemid[0],filename])
 
+                
         if napaka is None:
             napaka = "Item successfully submitted!"
         print(napaka)
