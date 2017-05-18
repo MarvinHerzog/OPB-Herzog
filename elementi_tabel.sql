@@ -52,7 +52,9 @@ INSERT INTO categories(category_name,parentid) VALUES ('Cameras',72);
 INSERT INTO categories(category_name,parentid) VALUES ('Lenses & Filters',72);
 INSERT INTO categories(category_name,parentid) VALUES ('Camcorders',72);
 INSERT INTO categories(category_name,parentid) VALUES ('Tripods & Supports',72);
-
+INSERT INTO categories(category_name,parentid) VALUES ('Slaves',Null);
+INSERT INTO categories(category_name,parentid) VALUES ('House Slave',77);
+INSERT INTO categories(category_name,parentid) VALUES ('Work Slave',77);
 
 
 /*Pri dodajanju atributov za kategorije VEDNO daj atribut staršu,
