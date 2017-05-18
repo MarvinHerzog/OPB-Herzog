@@ -411,9 +411,15 @@
 									<div class="productinfo text-center">
 									%try:
 										%pic = slike[predmeti[i-1][0]]
+										<p>
+										<a href="/item/{{predmeti[i-1][0]}}/">
 										<img src="/static/images/uploads/{{pic}}" alt="" style="max-width: 200px; max-height: 300px;"/>
+										</p>
 									%except:
+										<p>
+										<a href="/item/{{predmeti[i-1][0]}}/">
 										<img src="/static/images/shop/product11.jpg" alt="" />
+										</p>
 									%end
 
 										<p>{{predmeti[i-1][1]}}</p>
@@ -442,13 +448,7 @@
 										
 										<a href="#" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
 									</div>
-									<div class="product-overlay">
-										<div class="overlay-content">
-											<h2>$56</h2>
-											<p>Easy Polo Black Edition</p>
-											<a href="#" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
-										</div>
-									</div>
+
 								</div>
 								<div class="choose">
 									<ul class="nav nav-pills nav-justified">

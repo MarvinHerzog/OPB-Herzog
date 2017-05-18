@@ -342,8 +342,8 @@ def shop_get(catid):
 
 
 
-@get("/producttest/")
-def login_get():
+@get("/item/<item_id>/")
+def login_get(item_id):
     """Serviraj formo za login."""
     curuser = get_user()
     return template("product-details.html",
