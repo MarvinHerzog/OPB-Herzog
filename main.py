@@ -133,6 +133,10 @@ def shop_get():
     podkategorije=cur.fetchall()
     print(podkategorije)
     query = dict(request.query)
+    qstring = str(request.query_string)
+    qstring = re.sub('&?page=\d','', qstring, flags=re.IGNORECASE)
+    pagenr = request.query.page or 1
+    print(qstring,pagenr)
 
 
     ORstring='''
@@ -147,7 +151,7 @@ def shop_get():
             query[i] = ''
 
     print(query)
-    if query['bidmin'] != '' and query['bidmin'] != '':
+    if query['bidmin'] != '' and query['bidmax'] != '':
         ORstring += 'AND (bid >= %s AND bid <= %s)\n'
         parameters = parameters + [query['bidmin'],query['bidmax']]
     elif query['bidmin'] != '': 
@@ -157,7 +161,7 @@ def shop_get():
         ORstring += 'AND (bid <= %s OR bid IS NULL)\n'
         parameters = parameters + [query['bidmax']]
 
-    if query['bomin'] != '' and query['bomin'] != '':
+    if query['bomin'] != '' and query['bomax'] != '':
         ORstring += 'AND (buyout >= %s AND buyout <= %s)\n'
         parameters = parameters + [query['bomin'],query['bomax']]
     elif query['bomin'] != '': 
@@ -166,16 +170,19 @@ def shop_get():
     elif query['bomax'] != '': 
         ORstring += 'AND (buyout <= %s OR buyout IS NULL)\n'
         parameters = parameters + [query['bomax']]
-                  
+    ORstring += "ORDER BY posted_date DESC"             
     cur.execute(ORstring,parameters)
     predmeti=cur.fetchall()
-    for i in predmeti: print(i)
+    print("dolzina: ", len(predmeti))
+    #for i in predmeti: print(i)
     
-    cur.execute("SELECT * FROM images WHERE itemid = ANY(%s)",[[i[0] for i in predmeti]])
+    cur.execute("SELECT * FROM images WHERE itemid = ANY(%s) ",[[i[0] for i in predmeti]])
     slike = cur.fetchall()
     slike = {i[0]:i[1] for i in slike}
     
     return template("shop.html",
+                           pagenr=int(pagenr),
+                           qstring=qstring,                    
                            predmeti=predmeti,
                            slike=slike,                    
                            query=query,
@@ -200,14 +207,23 @@ def shop_get(catid):
     cur.execute("SELECT * FROM attributes WHERE attributeid = ANY(%s)",[[i[0] for i in atributi]])
     vrednosti_atributov = cur.fetchall()
     vrednosti_atributov = list(set([(i[1],i[2]) for i in vrednosti_atributov]))
-    #cur.execute("")
     query = dict(request.query)
+    try:
+        del query['page']
+    except:
+        pass
+    
+    qstring = str(request.query_string)
+    qstring = re.sub('&?page=\d','', qstring, flags=re.IGNORECASE)
+    pagenr = request.query.page or 1
     cleanquery= {i:query[i] for i in query if query[i]!=''}
     textquery = tuple([(i,cleanquery[i]) for i in cleanquery if 'max' not in i and 'min' not in i])
     intquery =  {i:cleanquery[i] for i in cleanquery if ('max'  in i or 'min'  in i) and ('bo' not in i and 'bid' not in i)}
     print(query,cleanquery)
     print(textquery,intquery)
     print(atributi)
+
+
 
 
 
@@ -308,14 +324,14 @@ def shop_get(catid):
     print(length)
     print(parameters)
   
-          
+    ORstring += "ORDER BY posted_date DESC"       
     cur.execute(
         ORstring,parameters) #Izberemo tiste predmete, ki ustrezajo vsem filtrom
     print(str(cur.query))
     
     predmeti=cur.fetchall()
-    print(predmeti,'\n\n\n')
-    for i in predmeti: print(i)
+    print("dolzina: ", len(predmeti))
+    #for i in predmeti: print(i)
     
 
     ## dobi slike
@@ -328,6 +344,8 @@ def shop_get(catid):
 
     
     return template("shop.html",
+                           pagenr=int(pagenr),
+                           qstring=qstring, 
                            slike=slike,                     
                            predmeti=predmeti,
                            query=query,

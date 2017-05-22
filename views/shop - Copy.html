@@ -424,38 +424,28 @@
 									%end
 
 										<p>{{predmeti[i-1][1]}}</p>
-										<div class='col-sm-5 col-sm-offset-1' style="color:blue;">
-											<div>
+										<div class='row'>
+											
 											%if predmeti[i-1][4]:
-												<h5>Bid</h5>
-											%end
-											</div>
-											%if predmeti[i-1][4]:
-												<h5>{{predmeti[i-1][4]}}€</h5>
-											%end
-											<div>
-											</div>
-
-										</div>
-										<div class='col-sm-5' style="color:green;">
-											<div>
-											%if predmeti[i-1][5]:
-												<h5>Buyout</h5>
+												Bid
 											%end
 											
-											</div>
 											%if predmeti[i-1][5]:
-												<h5>{{predmeti[i-1][5]}}€</h5>
+												Buyout
 											%end
-											<div>
-											</div>
-
-										</div>
-
-										
-
-
 											
+										</div>
+										<div class='row'>
+											
+											%if predmeti[i-1][4]:
+												{{predmeti[i-1][4]}}€
+											%end
+											
+											%if predmeti[i-1][5]:
+												{{predmeti[i-1][5]}}€
+											%end
+											
+										</div>										
 										
 										<a href="#" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
 									</div>
