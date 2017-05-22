@@ -409,63 +409,74 @@
 						<div class="col-sm-4">
 							<div class="product-image-wrapper">
 								<div class="single-products">
-									<div class="productinfo text-center">
-									%try:
-										%pic = slike[predmeti[i-1][0]]
-										<p>
-										<a href="/item/{{predmeti[i-1][0]}}/">
-										<img src="/static/images/uploads/{{pic}}" alt="" style="max-width: 200px; max-height: 300px;"/>
-										</p>
-									%except:
-										<p>
-										<a href="/item/{{predmeti[i-1][0]}}/">
-										<img src="/static/images/shop/noimage.jpg" alt="" />
-										</p>
-									%end
+									<div class="productinfo text-center" >
+										<div style="width:100%; height:65%; position: relative;">
 
-										<p>{{predmeti[i-1][1]}}</p>
-										<div class='col-sm-5 col-sm-offset-1' style="color:blue;">
-											<div>
-											%if predmeti[i-1][4]:
-												<h5>Bid</h5>
-											%end
-											</div>
-											%if predmeti[i-1][4]:
-												<h5>{{predmeti[i-1][4]}}€</h5>
-											%end
-											<div>
-											</div>
-
-										</div>
-										<div class='col-sm-5' style="color:green;">
-											<div>
-											%if predmeti[i-1][5]:
-												<h5>Buyout</h5>
-											%end
+										%try:
+											%pic = slike[predmeti[i-1][0]]
 											
-											</div>
-											%if predmeti[i-1][5]:
-												<h5>{{predmeti[i-1][5]}}€</h5>
-											%end
-											<div>
-											</div>
+											<a href="/item/{{predmeti[i-1][0]}}/">
+											<img class="testimg" src="/static/images/uploads/{{pic}}" alt="" style="max-width: 200px; max-height: 250px; ">
+													
+											
+										%except:
+											
+											<a href="/item/{{predmeti[i-1][0]}}/">
+											<img src="/static/images/shop/noimage.jpg" alt="" />
+											
+										%end
 
 										</div>
 
-										
+										<div style="position: absolute; width: 100%; bottom:0; margin-left:auto;">
+										<div class="row" >
+											<p style="margin:auto; margin-left:20px; margin-right:20px;">{{predmeti[i-1][1]}}</p>
+											<div
+											%if predmeti[i-1][5]:
+											class='col-sm-5 col-sm-offset-1'
+											%end
+											style="color:blue; ">
+												<div>
+												%if predmeti[i-1][4]:
+													<h5>Bid</h5>
+												%end
+												</div>
+												%if predmeti[i-1][4]:
+													<h5>{{predmeti[i-1][4]}}€</h5>
+												%end
+												<div>
+												</div>
+
+											</div>
+											<div
+											%if predmeti[i-1][4]:											
+											class='col-sm-5'
+											%end
+											style="color:green;">
+												<div>
+												%if predmeti[i-1][5]:
+													<h5>Buyout</h5>
+												%end
+												
+												</div>
+												%if predmeti[i-1][5]:
+													<h5>{{predmeti[i-1][5]}}€</h5>
+												%end
+												<div>
+												</div>
+
+											</div>
+											
+										</div>
+										<a href="#" class="btn btn-default add-to-cart"><i ></i>Details</a>
+										</div>
 
 
 											
 										
-										<a href="#" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
+										
 									</div>
 
-								</div>
-								<div class="choose">
-									<ul class="nav nav-pills nav-justified">
-										<li><a href=""><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-										<li><a href=""><i class="fa fa-plus-square"></i>Add to compare</a></li>
-									</ul>
 								</div>
 							</div>
 						</div>
@@ -764,8 +775,19 @@
 							<li><a href=".?{{qstring}}&page={{pagenr-1}}">&laquo;</a></li>
 							%end
 							
+							%if pagenr-2>1:
+							
+							<li><a href=".?{{qstring}}&page=1">1</a></li>
+							<li><a href="">...</a></li>
+							%end
+							
 							%for i in range(max(1,pagenr-2),min(pagenr+3,ststrani+1)):
 							<li><a href=".?{{qstring}}&page={{i}}">{{i}}</a></li>
+							%end
+							
+							%if pagenr+3<ststrani+1:
+							<li><a href="">...</a></li>
+							<li><a href=".?{{qstring}}&page={{ststrani}}">{{ststrani}}</a></li>
 							%end
 							
 							%if pagenr<ststrani:

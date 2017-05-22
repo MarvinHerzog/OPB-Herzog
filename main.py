@@ -628,6 +628,8 @@ def post():
         if values[2] is not None and values[3] is not None:
             if int(values[2]) >= int(values[3]):
                 napaka = "Bid price must be lower than the buyout price!"
+        if len(values[0]) > 100:
+            napaka = "Item name is too long!"
             
             
                 
@@ -641,7 +643,7 @@ def post():
                     cur.execute("INSERT INTO attributes(itemid,attributeid,value) VALUES (%s,%s,%s)",
                                 (itemid[0],seznam_atributov[i-6][0],values[i]))
                           
-            if image is not None:
+            if image is not None and napaka is not None:
                 name, ext = os.path.splitext(image.filename)
                 if ext.lower() not in ('.png','.jpg','.jpeg'):
                     napaka = 'Image file extension not allowed.'
