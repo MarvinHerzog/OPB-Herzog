@@ -364,11 +364,133 @@ def shop_get(catid):
 def login_get(item_id):
     """Serviraj formo za login."""
     curuser = get_user()
+
+
+    cur.execute(''' SELECT * FROM attributes
+        JOIN cat_attrib on cat_attrib.attributeid = attributes.attributeid
+        where itemid = %s''',[item_id])
+    atributi = cur.fetchall()
+   
+
+    cur.execute(''' SELECT * FROM images        
+        where itemid = %s''',[item_id])
+    slike = cur.fetchall()
+
+    cur.execute(''' SELECT itemid,itemname,categoryid,
+                    ownerid,bid,buyout,posted_date::date,expires::date,description,
+                    current_bidder,userid,username,name,surname,email,previous_bid FROM items
+                    JOIN users ON users.userid=items.ownerid
+        where itemid = %s''',[item_id])
+    item = cur.fetchone()
+    print(atributi,"\n",slike,"\n",item)
+    
+    
     return template("product-details.html",
+                           slike=slike,
+                           atributi=atributi,
+                           item = item,
                            napaka=None,
                            stanje=curuser[3],
                            logged=curuser[2],
                            username=None)
+
+
+
+@post("/item/<item_id>/")
+def login_get(item_id):
+    """Serviraj formo za login."""
+    napaka = None
+    curuser = get_user(auto_login = True)
+    
+    bid=request.forms.get("bid")
+    buyout=request.forms.get("buyout")
+
+
+
+
+    
+
+    cur.execute(''' SELECT * FROM attributes
+        JOIN cat_attrib on cat_attrib.attributeid = attributes.attributeid
+        where itemid = %s''',[item_id])
+    atributi = cur.fetchall()
+   
+
+    cur.execute(''' SELECT * FROM images        
+        where itemid = %s''',[item_id])
+    slike = cur.fetchall()
+
+    cur.execute(''' SELECT itemid,itemname,categoryid,
+                    ownerid,bid,buyout,posted_date::date,expires::date,description,
+                    current_bidder,userid,username,name,surname,email,previous_bid FROM items
+                    JOIN users ON users.userid=items.ownerid
+        where itemid = %s''',[item_id])
+    item = cur.fetchone()
+    print(atributi,"\n",slike,"\n",item)
+    print("aaa",buyout,bid)
+    
+
+
+    ## bid in buyout update
+    bid=request.forms.get("bid")
+    buyout=request.forms.get("buyout")
+    print(bid,buyout)
+    if bid == item[5]:
+        bid = None
+        buyout = 1
+        
+    if bid is not None:
+        bid = Decimal(bid)
+        print("sem 1")
+        if curuser[3]<=bid:
+            napaka = "You don't have enough funds to do that"
+            print("sem 2")
+        elif str(curuser[0]) == str(item[9]):
+            napaka ="You're already the highest bidder"
+            print("sem 3")
+        else:
+            print("sem 4")
+            if item[9]:                                                                 #če prejšnji bidder obstaja:
+                cur.execute("UPDATE users SET balance = balance + %s WHERE userID = %s", #prejšnji max bidder dobi denar nazaj
+                    [item[15],item[9]])
+                print("sem 5")
+                
+            cur.execute("UPDATE users SET balance = balance - %s WHERE userID = %s", #novi bidder plača
+                [bid,curuser[0]])
+            cur.execute("UPDATE items SET current_bidder = %s WHERE itemid = %s", #novi bidder plača
+                [curuser[0],item_id])
+            cur.execute("UPDATE items SET previous_bid = bid WHERE itemid=%s",[item_id]) #stari bid update
+            if round(bid*105)/100 > item[5]:
+                cur.execute("UPDATE items SET bid = NULL WHERE itemid=%s",[item_id]) #če nova bid cena preseže buyout se nastavi na null
+            else:
+                cur.execute("UPDATE items SET bid = %s WHERE itemid=%s",[round(bid*105)/100,item_id]) #sicer se poveča za 5% in zaokroži
+            redirect("/item/"+item_id+"/")
+
+    if buyout is not None: #buyout je 1 ali None
+        if curuser[3]<=item[5]:
+            napaka = "You don't have enough funds to do that"
+        else:
+            if item[9]:                                                                 #če prejšnji bidder obstaja:
+                cur.execute("UPDATE users SET balance = balance + %s WHERE userID = %s", #prejšnji max bidder dobi denar nazaj
+                    [item[15],item[9]])
+            cur.execute("UPDATE users SET balance = balance - %s WHERE userID = %s", #novi kupec plača
+                [item[5],curuser[0]])
+            cur.execute("INSERT INTO sold_expired (SELECT * FROM ITEMS WHERE itemid=%s)",[item_id])
+            cur.execute("INSERT INTO transactions (itemid,buyerid,transaction,tr_date,tr_method) VALUES (%s,%s,%s,now(),'buyout')",[item_id,curuser[0],item[5]])
+            cur.execute("DELETE from items WHERE itemid=%s",[item_id])
+            redirect("/shop/")
+
+
+    
+    return template("product-details.html",
+                           slike=slike,
+                           atributi=atributi,
+                           item = item,
+                           napaka=napaka,
+                           stanje=curuser[3],
+                           logged=curuser[2],
+                           username=None)
+
 
 
 @get("/login/")
@@ -470,6 +592,7 @@ def register_post():
     """Depozit."""
     curuser = get_user(auto_login=True)
     deposit = Decimal(request.forms.deposit)
+    
     if deposit <= 0:
         return template("account.html",
                            stanje=curuser[3],
@@ -634,7 +757,7 @@ def post():
             
                 
         if not napaka:
-            cur.execute("INSERT INTO items(itemname, categoryid, ownerid, bid, buyout,expires,description,current_bidder) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s,NULL)",
+            cur.execute("INSERT INTO items(itemname, categoryid, ownerid, bid, buyout,expires,description,current_bidder,previous_bid) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s,NULL,NULL)",
                 (values[0],cleanquery[max(cleanquery)],curuser[0],values[2],values[3],values[4]+" days",values[1]))
             cur.execute("SELECT last_value FROM items_itemid_seq")
             itemid=cur.fetchone()

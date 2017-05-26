@@ -1192,6 +1192,11 @@ h2.title {
   border: 1px solid #F7F7F0;
   height: 380px;
   width: 100%;
+  height: 100%;
+  
+}
+
+.view-product:hover img {
 }
 
 .view-product h3 {
@@ -1269,11 +1274,65 @@ h2.title {
   color: #FE980F;
   float: left;
   font-family: 'Roboto', sans-serif;
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 700;
   margin-right: 20px;
   margin-top: 0px;
 }
+
+.col-sm-6  span  {
+  float: left;
+  font-family: 'Roboto', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-right: 20px;
+  margin-top: 0px;
+}
+
+.col-sm-5  .currencyinput input,
+.col-sm-7  .currencyinput input  {
+  float: left;
+  font-family: 'Roboto', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-right: 20px;
+  margin-top: 0px;
+}
+
+.bid .currencyinput input {
+	color:blue;
+	border-color:rgba(155, 155, 155, 0);
+}
+.bid span {
+	color:blue;
+}
+
+.currencyinput {
+    border: 1px inset #ccc;
+	border-color:rgba(155, 155, 155, 0.15);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+.buyout span {
+	color:green;
+}
+
+.col-sm-7  span,
+.col-sm-5  span   {
+  float: left;
+  font-family: 'Roboto', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-right: 0px;
+  margin-top: 0px;
+}
+
 .product-information span input {
   border: 1px solid #DEDEDC;
   color: #696763;
