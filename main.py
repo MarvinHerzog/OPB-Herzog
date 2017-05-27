@@ -10,17 +10,6 @@ import os
 static_dir = "./static"
 secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
 
-#baza1 = "aaa.db"
-##baza = sqlite3.connect(baza1, isolation_level=None)
-##c = baza.cursor()
-##c.execute('''CREATE TABLE IF NOT EXISTS uporabnik (
-##  username TEXT PRIMARY KEY,
-##  password TEXT NOT NULL,
-##  ime TEXT NOT NULL,
-##  priimek TEXT NOT NULL
-##);
-##''')
-##c.close()
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE) # se znebimo problemov s sumniki
 baza = psycopg2.connect(database=auth.db, host=auth.host, user=auth.user, password=auth.password)
@@ -131,12 +120,10 @@ def shop_get():
     curuser = get_user()
     cur.execute("SELECT * FROM categories WHERE parentid is NULL")
     podkategorije=cur.fetchall()
-    print(podkategorije)
     query = dict(request.query)
     qstring = str(request.query_string)
     qstring = re.sub('&?page=\d','', qstring, flags=re.IGNORECASE)
     pagenr = request.query.page or 1
-    print(qstring,pagenr)
 
 
     ORstring='''
@@ -150,7 +137,7 @@ def shop_get():
         except:
             query[i] = ''
 
-    print(query)
+
     if query['bidmin'] != '' and query['bidmax'] != '':
         ORstring += 'AND (bid >= %s AND bid <= %s)\n'
         parameters = parameters + [query['bidmin'],query['bidmax']]
@@ -173,7 +160,6 @@ def shop_get():
     ORstring += "ORDER BY posted_date DESC"             
     cur.execute(ORstring,parameters)
     predmeti=cur.fetchall()
-    print("dolzina: ", len(predmeti))
     #for i in predmeti: print(i)
     
     cur.execute("SELECT * FROM images WHERE itemid = ANY(%s) ",[[i[0] for i in predmeti]])
@@ -198,7 +184,6 @@ def shop_get():
 def shop_get(catid):
     """Serviraj formo za shop."""
     curuser = get_user()
-    print(catid)
     starsi = list(reversed(get_cat_parents(catid)))
     cur.execute("SELECT * FROM categories WHERE parentid = %s",[catid])
     podkategorije=cur.fetchall()
@@ -219,9 +204,7 @@ def shop_get(catid):
     cleanquery= {i:query[i] for i in query if query[i]!=''}
     textquery = tuple([(i,cleanquery[i]) for i in cleanquery if 'max' not in i and 'min' not in i])
     intquery =  {i:cleanquery[i] for i in cleanquery if ('max'  in i or 'min'  in i) and ('bo' not in i and 'bid' not in i)}
-    print(query,cleanquery)
-    print(textquery,intquery)
-    print(atributi)
+
 
 
 
@@ -318,30 +301,19 @@ def shop_get(catid):
 
 
 
-    print(ORstring)
-
-
-    print(length)
-    print(parameters)
+  
   
     ORstring += "ORDER BY posted_date DESC"       
     cur.execute(
         ORstring,parameters) #Izberemo tiste predmete, ki ustrezajo vsem filtrom
-    print(str(cur.query))
+
     
     predmeti=cur.fetchall()
-    print("dolzina: ", len(predmeti))
-    #for i in predmeti: print(i)
-    
 
     ## dobi slike
     cur.execute("SELECT * FROM images WHERE itemid = ANY(%s)",[[i[0] for i in predmeti]])
     slike = cur.fetchall()
     slike = {i[0]:i[1] for i in slike}
-    print(slike)
-    
-    #cur.execute(""
-
     
     return template("shop.html",
                            pagenr=int(pagenr),
@@ -381,10 +353,7 @@ def login_get(item_id):
                     current_bidder,userid,username,name,surname,email,previous_bid FROM items
                     JOIN users ON users.userid=items.ownerid
         where itemid = %s''',[item_id])
-    item = cur.fetchone()
-    print(atributi,"\n",slike,"\n",item)
-    
-    
+    item = cur.fetchone()    
     return template("product-details.html",
                            slike=slike,
                            atributi=atributi,
@@ -426,15 +395,11 @@ def login_get(item_id):
                     JOIN users ON users.userid=items.ownerid
         where itemid = %s''',[item_id])
     item = cur.fetchone()
-    print(atributi,"\n",slike,"\n",item)
-    print("aaa",buyout,bid)
-    
 
 
     ## bid in buyout update
     bid=request.forms.get("bid")
     buyout=request.forms.get("buyout")
-    print(bid,buyout)
     if bid == item[5]:
         bid = None
         buyout = 1
@@ -680,7 +645,7 @@ def login_get():
 
     if attrib == 1:
         #če smo izbrali končno kategorijo, izberemo atribute za predmet:
-        print(query,cleanquery)
+
         
         for i in cleanquery:
             cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
@@ -688,8 +653,7 @@ def login_get():
         for i in seznam_atributov:
             values.append('')
             
-            
-    print(seznam_atributov)
+
     return template("new.html",
                            values = values,
                            attrib = attrib,
@@ -758,11 +722,8 @@ def post():
         image = request.files.get("uploaded")
         for atribut in seznam_atributov:
             formname="a"+str(atribut[0])
-            print(formname,request.forms.get(formname))
             values.append(request.forms.get(formname))
             
-        print(seznam_atributov)
-
         #napake:
         if values[2] is None and values[3] is None:
             napaka = "At least one price must be specified!"
@@ -798,8 +759,7 @@ def post():
                 
         if napaka is None:
             napaka = "Item successfully submitted!"
-        print(napaka)
-        return template("new.html",
+            return template("new.html",
                            values=values,
                            attrib = attrib,
                            seznam=seznam_kategorij,
