@@ -441,19 +441,16 @@ def login_get(item_id):
         
     if bid is not None:
         bid = Decimal(bid)
-        print("sem 1")
         if curuser[3]<=bid:
             napaka = "You don't have enough funds to do that"
-            print("sem 2")
         elif str(curuser[0]) == str(item[9]):
             napaka ="You're already the highest bidder"
-            print("sem 3")
+        elif bid==item[5]:
+            buyout = 1 #če je bid enak buyout ceni kr kupis item
         else:
-            print("sem 4")
             if item[9]:                                                                 #če prejšnji bidder obstaja:
                 cur.execute("UPDATE users SET balance = balance + %s WHERE userID = %s", #prejšnji max bidder dobi denar nazaj
                     [item[15],item[9]])
-                print("sem 5")
                 
             cur.execute("UPDATE users SET balance = balance - %s WHERE userID = %s", #novi bidder plača
                 [bid,curuser[0]])
@@ -579,7 +576,28 @@ def register_post():
 def login_get():
     """Prikaži formo za registracijo."""
     curuser = get_user(auto_login=True)
+
+
+    cur.execute("SELECT itemid,itemname,bid,expires::date from items where current_bidder = %s",[curuser[0]])
+    bids = cur.fetchall()
+    cur.execute('''SELECT transactions.itemid,itemname,transaction,tr_method,tr_date::date FROM transactions
+                JOIN sold_expired on sold_expired.itemid=transactions.itemid
+                WHERE buyerid = %s''',
+                [curuser[0]])
+    purchased = cur.fetchall()
+
+    cur.execute('''SELECT itemid,itemname,username,bid,buyout,posted_date,expires FROM items
+                LEFT JOIN users ON users.userid = items.current_bidder
+                WHERE ownerid = %s''',[curuser[0]])
+    myitems = cur.fetchall()
+    
+
+        
+    
     return template("account.html",
+                           bids = bids,
+                           purchased = purchased,
+                           myitems = myitems,
                            stanje=curuser[3],
                            username=None,
                            ime=None,

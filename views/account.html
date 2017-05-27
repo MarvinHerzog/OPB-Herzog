@@ -59,41 +59,15 @@
 						<div class="logo pull-left">
 							<a href="/shop/"><img src="/static/images/home/logo.png" alt="" /></a>
 						</div>
-						<div class="btn-group pull-right">
-							<div class="btn-group">
-								<button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-									USA
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu">
-									<li><a href="">Canada</a></li>
-									<li><a href="">UK</a></li>
-								</ul>
-							</div>
-							
-							
-							
-							
-							<div class="btn-group">
-								<button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-									DOLLAR
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu">
-									<li><a href="">Canadian Dollar</a></li>
-									<li><a href="">Pound</a></li>
-								</ul>
-							</div>
-						</div>
+						
 					</div>
 					<div class="col-sm-8">
 						<div class="shop-menu pull-right">
 							<ul class="nav navbar-nav">
 								%if logged is not None:
 								<li><a href="/account/"><i class="fa fa-user"></i> {{logged}}</a></li>
-								<li><a href=""><i class="fa fa-star"></i> Your balance: {{stanje}}€</a></li>
+								<li><a href="/account/"><i class="fa fa-star"></i> Your balance: {{stanje}}€</a></li>
 								<li><a href="/new/"><i class="fa fa-crosshairs"></i>Sell Items</a></li>
-								<li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
 								%end
 								%if logged is None:
 									<li><a href="/login/"><i class="fa fa-lock"></i>Login</a></li>
@@ -120,28 +94,7 @@
 								<span class="icon-bar"></span>
 							</button>
 						</div>
-						<div class="mainmenu pull-left">
-							<ul class="nav navbar-nav collapse navbar-collapse">
-								<li><a href="/shop/">Home</a></li>
-								<li class="dropdown"><a href="#">Shop<i class="fa fa-angle-down"></i></a>
-                                    <ul role="menu" class="sub-menu">
-                                        <li><a href="shop.html">Products</a></li>
-										<li><a href="product-details.html">Product Details</a></li> 
-										<li><a href="checkout.html">Checkout</a></li> 
-										<li><a href="cart.html">Cart</a></li> 
-										<li><a href="login.html" class="active">Login</a></li> 
-                                    </ul>
-                                </li> 
-								<li class="dropdown"><a href="#">Blog<i class="fa fa-angle-down"></i></a>
-                                    <ul role="menu" class="sub-menu">
-                                        <li><a href="blog.html">Blog List</a></li>
-										<li><a href="blog-single.html">Blog Single</a></li>
-                                    </ul>
-                                </li> 
-								<li><a href="404.html">404</a></li>
-								<li><a href="contact-us.html">Contact</a></li>
-							</ul>
-						</div>
+						
 					</div>
 					<div class="col-sm-3">
 						<div class="search_box pull-right">
@@ -153,35 +106,116 @@
 		</div><!--/header-bottom-->
 	</header><!--/header-->
 	
-	<section id="form"><!--form-->
+	<section ><!--form-->
 		<div class="container">
-			<div class="row">
+			
 
-				<div class="col-sm-2 col-sm-offset-1">
-					<div class="form-group row">
-					<form id="main-contact-form" class="contact-form row" name="contact-form" method="post">
+				<div>
+					<div class="form-group" style="margin-left:15px;">
+					<form id="main-contact-form" class="contact-form row" name="contact-form" method="post" style="margin:auto;">
 
 						<h2>Account balance</h2>
 						  <label for="example-number-input" class="col-2 col-form-label">Deposit amount (in €)</label>
-						  <div class="col-sm-7 row">
-							<input class="form-control" type="number" step="0.01" value="0.00" name="deposit">
-						  </div>
-						  <div>
-							<button type="submit" class="btn btn-default">Deposit</button>
-							%if napaka is not None:
-							<div>{{napaka}}<div>
-							%end
+						  <div class="row">
+							  <div class="col-sm-2">
+								<input class="form-control" type="number" step="0.01" value="0.00" name="deposit" style="width:100px;">
+							  </div>
+							  <div  style="margin-left:15px">
+								<button type="submit" class="btn btn-default">Deposit</button>
+								%if napaka is not None:
+								<div>{{napaka}}</div>
+								%end
+							  </div>
 						  </div>
 					</form>
 					</div>					
 				</div>
-
+			
+				<br><br>
+				<div>
+									
+					<div class="category-tab shop-details-tab"><!--category-tab-->
+						<div class="col-sm-12">
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#bids" data-toggle="tab">Your Bids</a></li>
+								<li><a href="#purchased" data-toggle="tab">Purchased items</a></li>
+								<li><a href="#youritems" data-toggle="tab">Your items</a></li>
+							</ul>
+						</div>
+						<div class="tab-content">
+							<div class="tab-pane fade active in" id="bids" >
+								<table style="width:100%; margin:15px;">
+								  <tr>
+									<th>Item name</th>
+									<th>Current bid</th> 
+									<th>Expires</th>
+								  </tr>
+								  
+								  %for element in bids:
+								  <tr>
+									<td><a href="/item/{{element[0]}}/"> {{element[1]}}<a></td>
+									<td>{{element[2]}}</td> 
+									<td>{{element[3].strftime("%A, %d. %B %Y")}}</td>
+								  </tr>
+								  %end
+								</table>
+							</div>
+							
+							<div class="tab-pane fade" id="purchased" >
+								<table style="width:100%">
+								  <tr>
+									<th>Item name</th>
+									<th>Amount paid</th> 
+									<th>Method</th>
+									<th>Transaction date</th>
+								  </tr>
+								  
+								  %for element in purchased:
+								  <tr>
+									<td>{{element[1]}}</td>
+									<td>{{element[2]}}</td> 
+									<td>{{element[3]}}</td>
+									<td>{{element[4].strftime("%A, %d. %B %Y")}}</td>
+								  </tr>
+								  %end
+								</table>
+							</div>
+							
+							<div class="tab-pane fade" id="youritems" >
+								<table style="width:100%">
+								  <tr>
+									<th>Item name</th>
+									<th>Current bidder</th> 
+									<th>Current bid</th>
+									<th>Buyout price</th>
+									<th>Posted on</th>
+									<th>Expiration date</th>
+								  </tr>
+								  
+								  %for element in myitems:
+								  <tr>
+									<td><a href="/item/{{element[0]}}/"> {{element[1]}}<a></td>
+									<td>{{element[2]}}</td> 
+									<td>{{element[3]}}</td>
+									<td>{{element[4]}}</td> 
+									<td>{{element[5].strftime("%A, %d. %B %Y %I:%M%p")}}</td>
+									<td>{{element[6].strftime("%A, %d. %B %Y %I:%M%p")}}</td> 
+								  </tr>
+								  %end
+								</table>
+							</div>
+							
+							
+							
+						</div>
+					</div><!--/category-tab-->				
+				</div>
 	
 				
-			</div>
+			
 		</div>
 	</section><!--/form-->
-	
+	<br><br>
 	
 	<footer id="footer"><!--Footer-->
 		<div class="footer-top">
