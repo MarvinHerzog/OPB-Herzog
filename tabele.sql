@@ -66,7 +66,7 @@ create table cat_attrib(
 	); /*podkategorija naj implicitno deduje atribute vseh svojih starsev */
 	
 CREATE TABLE images (
-	itemID int REFERENCES items(ITEMID) NOT NULL,
+	itemID int NOT NULL REFERENCES items(ITEMID) ON DELETE CASCADE,
 	imagename TEXT NOT NULL UNIQUE);
     
 CREATE TABLE sold_expired(

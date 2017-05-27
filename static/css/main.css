@@ -1251,6 +1251,20 @@ h2.title {
 	left:0
 }
 
+
+.row-height {
+  display: table;
+  table-layout: fixed;
+  height: 100%;
+  width: 100%;
+}
+.col-height {
+  display: table-cell;
+  float: none;
+  height: 100%;
+}
+
+
 .product-information h2 {
   color: #363432;
   font-family: 'Roboto', sans-serif;
@@ -1372,8 +1386,8 @@ input::-webkit-inner-spin-button {
 .shop-details-tab {
   border: 1px solid #F7F7F0;
   margin-bottom: 75px;
-  margin-left: 15px;
-  margin-right: 15px;
+  margin-left: 0px;
+  margin-right: 0px;
   padding-bottom: 10px;
 }
 .shop-details-tab .col-sm-12 {

@@ -119,23 +119,23 @@
 					<h5 style="background: rgba(255, 0, 0, 0.49); text-align: center;">{{napaka}}</h5>
 				<div>
 				%end
-			<div class="row">
-
+			
 				
-				<div class="col-sm-12 padding-right">
-					<div class="product-details"><!--product-details-->
-						<div class="col-sm-5">
-							<div class="view-product">
+				<div class="col-sm-12 padding-right ">
+					<div class="product-details row"><!--product-details-->
+					<div class="row-height">
+						<div class="col-sm-5 col-height" style="text-align:center; vertical-align:middle" >
+							
 								%if slike:
-									<img src="/static/images/uploads/{{slike[0][1]}}" alt="" />
+									<img src="/static/images/uploads/{{slike[0][1]}}" style="width:auto; max-width:100%;" alt="" />
 								%else:
 									<img src="/static/images/shop/noimage.jpg" alt="" />
 								%end
-							</div>
+							
 							
 
 						</div>
-						<div class="col-sm-7">
+						<div class="col-sm-7 col-height">
 							<div class="product-information"><!--/product-information-->
 								<h1>{{item[1]}}</h1>
 								<p><b>By {{item[11]}}</b></p>
@@ -151,7 +151,7 @@
 								<div style="width:100%" class="row">
 									<div class="col-sm-5 bid"><span>Current bid price: </span></div>
 									<div  class="col-sm-7 bid">
-										<span class="currencyinput"  style="width:50%; text-align:left; float:left">
+										<span class="currencyinput"  style="width:150px; text-align:left; float:left">
 											<input name="bid" value="{{item[4]}}" type="number" step="0.01" min="{{item[4]}}" max="{{item[5]}}"
 											style="width:130px; text-align:right; margin-right:0; webkit-appearance: none; "></input>€</span>
 										<button onclick="submit" class="btn btn-fefault cart"  value="1">
@@ -192,6 +192,7 @@
 								
 							</div><!--/product-information-->
 						</div>
+					</div>
 					</div><!--/product-details-->
 					
 					<div class="category-tab shop-details-tab"><!--category-tab-->
@@ -202,7 +203,7 @@
 						</div>
 						<div class="tab-content">
 							<div class="tab-pane fade active in" id="details" >
-								<p>{{item[8]}}</p>
+								<p style="margin-left:10px; margin-right:10px">{{item[8]}}</p>
 							</div>
 							
 							
