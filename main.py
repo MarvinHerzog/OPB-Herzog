@@ -734,7 +734,7 @@ def post():
             napaka = "Item name is too long!"
             
             
-                
+        print("tu sem 0")        
         if not napaka:
             cur.execute("INSERT INTO items(itemname, categoryid, ownerid, bid, buyout,expires,description,current_bidder,previous_bid) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s,NULL,NULL)",
                 (values[0],cleanquery[max(cleanquery)],curuser[0],values[2],values[3],values[4]+" days",values[1]))
@@ -744,14 +744,16 @@ def post():
                 if values[i] is not None:
                     cur.execute("INSERT INTO attributes(itemid,attributeid,value) VALUES (%s,%s,%s)",
                                 (itemid[0],seznam_atributov[i-6][0],values[i]))
-                          
-            if image is not None and napaka is not None:
+            print(image,napaka)             
+            if image is not None and napaka is None:
                 name, ext = os.path.splitext(image.filename)
                 if ext.lower() not in ('.png','.jpg','.jpeg'):
                     napaka = 'Image file extension not allowed.'
                 else:
+                    print("tu sem 1")
                     save_path = os.getcwd()+"\\static\\images\\uploads"            
-                    filename = str(itemid[0]) + ext            
+                    filename = str(itemid[0]) + ext
+                    print(filename)
                     image.filename = filename
                     image.save(save_path) # appends upload.filename automatically
                     cur.execute("INSERT INTO images (itemid,imagename) values (%s,%s)",[itemid[0],filename])
