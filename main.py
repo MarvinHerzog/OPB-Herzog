@@ -575,9 +575,26 @@ def register_post():
     """Depozit."""
     curuser = get_user(auto_login=True)
     deposit = Decimal(request.forms.deposit)
+
+    cur.execute("SELECT itemid,itemname,bid,expires::date from items where current_bidder = %s",[curuser[0]])
+    bids = cur.fetchall()
+    cur.execute('''SELECT transactions.itemid,itemname,transaction,tr_method,tr_date::date FROM transactions
+                JOIN sold_expired on sold_expired.itemid=transactions.itemid
+                WHERE buyerid = %s''',
+                [curuser[0]])
+    purchased = cur.fetchall()
+
+    cur.execute('''SELECT itemid,itemname,username,bid,buyout,posted_date,expires FROM items
+                LEFT JOIN users ON users.userid = items.current_bidder
+                WHERE ownerid = %s''',[curuser[0]])
+    myitems = cur.fetchall()
+    
     
     if deposit <= 0:
         return template("account.html",
+                           bids = bids,
+                           purchased = purchased,
+                           myitems = myitems,
                            stanje=curuser[3],
                            username=None,
                            ime=None,
@@ -586,6 +603,9 @@ def register_post():
         
     if deposit + curuser[3] > 999999:
         return template("account.html",
+                           bids = bids,
+                           purchased = purchased,
+                           myitems = myitems,
                            stanje=curuser[3],
                            username=None,
                            ime=None,
@@ -595,6 +615,9 @@ def register_post():
     
     cur.execute("UPDATE users SET balance = balance + %s WHERE userID = %s", [deposit,curuser[0]])
     return template("account.html",
+                           bids = bids,
+                           purchased = purchased,
+                           myitems = myitems,
                            stanje=curuser[3]+deposit,
                            username=None,
                            ime=None,
