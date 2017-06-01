@@ -98,11 +98,6 @@ def static(filename):
     return static_file(filename, root=static_dir)
 
 
-
-@route('/hello')
-def hello():
-    return "Hello World!"
-
 @get("/index/")
 def index_get():
     """Serviraj formo za index."""
@@ -116,7 +111,6 @@ def index_get():
 
 @get("/shop/")
 def shop_get():
-    """Serviraj formo za shop."""
     curuser = get_user()
     cur.execute("SELECT * FROM categories WHERE parentid is NULL")
     podkategorije=cur.fetchall()
@@ -124,20 +118,22 @@ def shop_get():
     qstring = str(request.query_string)
     qstring = re.sub('&?page=\d','', qstring, flags=re.IGNORECASE)
     pagenr = request.query.page or 1
+    #iz query stringov poberemo vse (filtri in št strani)
 
-
+    #zaradi dinamične narave poizvedbe sestavimo SQL poizvedbo po kosih AND/OR
     ORstring='''
         SELECT items.itemid,itemname,categoryid,ownerid,bid,buyout,posted_date,expires FROM items         
         WHERE 1=1\n'''  
-    parameters = []
+    parameters = [] #vektor parametrov za sql stavke
     #Query za cene
     for i in ['bidmin','bidmax','bomin','bomax']:
         try:
-            krnekaj = query[i]
+            krnekaj = query[i] #ali je uporabnik sploh filtriral oz je None?
         except:
-            query[i] = ''
+            query[i] = '' 
 
 
+    #stavki za bid/buyout filtre
     if query['bidmin'] != '' and query['bidmax'] != '':
         ORstring += 'AND (bid >= %s AND bid <= %s)\n'
         parameters = parameters + [query['bidmin'],query['bidmax']]
@@ -145,8 +141,8 @@ def shop_get():
         ORstring += 'AND (bid >= %s)\n'
         parameters = parameters + [query['bidmin']]
     elif query['bidmax'] != '': 
-        ORstring += 'AND (bid <= %s OR bid IS NULL)\n'
-        parameters = parameters + [query['bidmax']]
+        ORstring += 'AND (bid <= %s OR (bid IS NULL AND buyout <= %s))\n'
+        parameters = parameters + [query['bidmax'],query['bidmax']]
 
     if query['bomin'] != '' and query['bomax'] != '':
         ORstring += 'AND (buyout >= %s AND buyout <= %s)\n'
@@ -155,13 +151,13 @@ def shop_get():
         ORstring += 'AND (buyout >= %s)\n'
         parameters = parameters + [query['bomin']]
     elif query['bomax'] != '': 
-        ORstring += 'AND (buyout <= %s OR buyout IS NULL)\n'
+        ORstring += 'AND (buyout <= %s)\n'
         parameters = parameters + [query['bomax']]
-    ORstring += "ORDER BY posted_date DESC"             
+    ORstring += "ORDER BY posted_date DESC"  #novi predmeti prikazani najprej           
     cur.execute(ORstring,parameters)
     predmeti=cur.fetchall()
-    #for i in predmeti: print(i)
-    
+
+    #ta tabela je potrebna zaradi razlicnih koncnic (jpg, png)
     cur.execute("SELECT * FROM images WHERE itemid = ANY(%s) ",[[i[0] for i in predmeti]])
     slike = cur.fetchall()
     slike = {i[0]:i[1] for i in slike}
@@ -182,8 +178,10 @@ def shop_get():
 
 @get("/shop/<catid>/")
 def shop_get(catid):
-    """Serviraj formo za shop."""
+    #vse isto kot zgoraj, tokrat za specificno podkategorijo
     curuser = get_user()
+
+    #funkcija nam rekurzivno da vse 'nadkategorije'
     starsi = list(reversed(get_cat_parents(catid)))
     cur.execute("SELECT * FROM categories WHERE parentid = %s",[catid])
     podkategorije=cur.fetchall()
@@ -283,8 +281,8 @@ def shop_get(catid):
         ORstring += 'AND (bid >= %s)\n'
         parameters = parameters + [query['bidmin']]
     elif query['bidmax'] != '': 
-        ORstring += 'AND (bid <= %s OR bid IS NULL)\n'
-        parameters = parameters + [query['bidmax']]
+        ORstring += 'AND (bid <= %s OR (bid IS NULL AND buyout <= %s))\n'
+        parameters = parameters + [query['bidmax'],query['bidmax']]
 
     if query['bomin'] != '' and query['bomin'] != '':
         ORstring += 'AND (buyout >= %s AND buyout <= %s)\n'
@@ -293,7 +291,7 @@ def shop_get(catid):
         ORstring += 'AND (buyout >= %s)\n'
         parameters = parameters + [query['bomin']]
     elif query['bomax'] != '': 
-        ORstring += 'AND (buyout <= %s OR buyout IS NULL)\n'
+        ORstring += 'AND (buyout <= %s)\n'
         parameters = parameters + [query['bomax']]
                   
 
