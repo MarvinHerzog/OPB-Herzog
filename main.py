@@ -717,9 +717,8 @@ def post_new():
         except:
             #če pride do napake (npr. query stringa ni bilo za dan 'i') nastavi vrednost v slovarju na dummy, da ga html ignorira
             query[str(i)] = "dummy"
-            
 
-
+     
     if attrib == 1:
         #če smo izbrali končno kategorijo, izberemo atribute za predmet:
         
@@ -741,12 +740,24 @@ def post_new():
         #napake:
         if values[2] is None and values[3] is None:
             napaka = "At least one price must be specified!"
+        try:                
+            if Decimal(values[2]) > 999999:
+                napaka = "Bid price too high!"
+        except:
+            pass
+        try:
+            if Decimal(values[3]) > 999999:
+                napaka = "Buyout price too high!"
+        except:
+            pass
+        if values[2] is None and values[3] is None:
+            napaka = "At least one price must be specified!"
         if values[2] is not None and values[3] is not None:
-            if int(values[2]) >= int(values[3]):
+            if Decimal(values[2]) >= Decimal(values[3]):
                 napaka = "Bid price must be lower than the buyout price!"
         if len(values[0]) > 100:
             napaka = "Item name is too long!"
-               
+    
         if not napaka:
             #če ni napake, zapiši item v bazo
             cur.execute("INSERT INTO items(itemname, categoryid, ownerid, bid, buyout,expires,description,current_bidder,previous_bid) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s,NULL,NULL)",
@@ -762,17 +773,16 @@ def post_new():
                 name, ext = os.path.splitext(image.filename)
                 if ext.lower() not in ('.png','.jpg','.jpeg'):
                     napaka = 'Image file extension not allowed.'
-                else:
-                    save_path = os.getcwd()+"\\static\\images\\uploads"            
+                else:                             
                     filename = str(itemid[0]) + ext
                     image.filename = filename
+                    save_path = os.path.join('static','images','uploads',filename)   
                     image.save(save_path) # appends upload.filename automatically
                     cur.execute("INSERT INTO images (itemid,imagename) values (%s,%s)",[itemid[0],filename])
-
-                
+   
         if napaka is None:
             napaka = "Item successfully submitted!"
-            return template("new.html",
+        return template("new.html",
                            values=values,
                            attrib = attrib,
                            seznam=seznam_kategorij,
