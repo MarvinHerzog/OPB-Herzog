@@ -52,7 +52,8 @@ def get_user(auto_login = False,auto_redir=False):
 
 
 def get_cat_parents(catid):
-    
+    #rekurzivna funkcija, ki dobi starše do največje možne globine
+    #opomba: podobna funkcija je definirana v phppgadmin med functions, le da slednje vrne vse otroke, vnuke,...
     cur.execute('''
                     SELECT starsi,category_name from
                     (
@@ -80,12 +81,6 @@ def get_cat_parents(catid):
 
 
 
-##@route("/")
-##def main():
-##    (username, ime) = get_user()
-##    return template("bolha.html",
-##                    username=username)
-##
 
 @route("/")
 def main():
@@ -96,18 +91,6 @@ def static(filename):
     """Splošna funkcija, ki servira vse statične datoteke iz naslova
        /static/..."""
     return static_file(filename, root=static_dir)
-
-
-@get("/index/")
-def index_get():
-    """Serviraj formo za index."""
-    curuser = get_user()
-    return template("index.html",
-                           stanje = curuser[3],
-                           napaka=None,
-                           logged=curuser[2],                    
-                           username=None)
-
 
 @get("/shop/")
 def shop_get():
@@ -126,7 +109,7 @@ def shop_get():
         WHERE 1=1\n'''  
     parameters = [] #vektor parametrov za sql stavke
     #Query za cene
-    for i in ['bidmin','bidmax','bomin','bomax']:
+    for i in ['bidmin','bidmax','bomin','bomax','search']:
         try:
             krnekaj = query[i] #ali je uporabnik sploh filtriral oz je None?
         except:
@@ -153,11 +136,18 @@ def shop_get():
     elif query['bomax'] != '': 
         ORstring += 'AND (buyout <= %s)\n'
         parameters = parameters + [query['bomax']]
+
+    if query['search'] != '': 
+        ORstring += '''AND (LOWER(itemname) LIKE LOWER(%s) )'''
+        parameters = parameters + ['%'+query['search']+'%']
+        print('%'+query['search']+'%')
+
+        
     ORstring += "ORDER BY posted_date DESC"  #novi predmeti prikazani najprej           
     cur.execute(ORstring,parameters)
     predmeti=cur.fetchall()
 
-    #ta tabela je potrebna zaradi razlicnih koncnic (jpg, png)
+    #ta tabela je potrebna zaradi razlicnih koncnic (jpg, png, etc.)
     cur.execute("SELECT * FROM images WHERE itemid = ANY(%s) ",[[i[0] for i in predmeti]])
     slike = cur.fetchall()
     slike = {i[0]:i[1] for i in slike}
@@ -195,12 +185,17 @@ def shop_get(catid):
         del query['page']
     except:
         pass
-    
+
+    #V html ne gre (brez js) zamenjati samo dela query stringa brez da bi izgubil ostale, zato:
     qstring = str(request.query_string)
-    qstring = re.sub('&?page=\d','', qstring, flags=re.IGNORECASE)
-    pagenr = request.query.page or 1
+    qstring = re.sub('&?page=\d','', qstring, flags=re.IGNORECASE)    
+    pagenr = request.query.page or 1 #stran
+
+    
     cleanquery= {i:query[i] for i in query if query[i]!=''}
-    textquery = tuple([(i,cleanquery[i]) for i in cleanquery if 'max' not in i and 'min' not in i])
+
+    #ločimo posebej atribute (številske/tekstovne), ki so specifični za kategorijo
+    textquery = tuple([(i,cleanquery[i]) for i in cleanquery if 'max' not in i and 'min' not in i and 'search' not in i])
     intquery =  {i:cleanquery[i] for i in cleanquery if ('max'  in i or 'min'  in i) and ('bo' not in i and 'bid' not in i)}
 
 
@@ -267,7 +262,7 @@ def shop_get(catid):
     
     parameters=parameters+[catid,catid]   
     #Query za cene
-    for i in ['bidmin','bidmax','bomin','bomax']:
+    for i in ['bidmin','bidmax','bomin','bomax','search']:
         try:
             krnekaj = query[i]
         except:
@@ -294,9 +289,10 @@ def shop_get(catid):
         ORstring += 'AND (buyout <= %s)\n'
         parameters = parameters + [query['bomax']]
                   
-
-
-
+    if query['search'] != '': 
+        ORstring += '''AND (LOWER(itemname) LIKE LOWER(%s) )'''
+        parameters = parameters + ['%'+query['search']+'%']
+        print('%'+query['search']+'%')
 
 
   
@@ -331,17 +327,17 @@ def shop_get(catid):
 
 
 @get("/item/<item_id>/")
-def login_get(item_id):
-    """Serviraj formo za login."""
+def item_get(item_id):
+    """Podroben opis predmeta"""
     curuser = get_user()
 
-
+    #vsi atributi izbranega predmeta
     cur.execute(''' SELECT * FROM attributes
         JOIN cat_attrib on cat_attrib.attributeid = attributes.attributeid
         where itemid = %s''',[item_id])
     atributi = cur.fetchall()
    
-
+    #slika
     cur.execute(''' SELECT * FROM images        
         where itemid = %s''',[item_id])
     slike = cur.fetchall()
@@ -364,19 +360,12 @@ def login_get(item_id):
 
 
 @post("/item/<item_id>/")
-def login_get(item_id):
-    """Serviraj formo za login."""
+def item_post(item_id):
+    """Kupi predmet oz. bid"""
     napaka = None
     curuser = get_user(auto_login = True)
-    
-    bid=request.forms.get("bid")
-    buyout=request.forms.get("buyout")
-
-
-
 
     
-
     cur.execute(''' SELECT * FROM attributes
         JOIN cat_attrib on cat_attrib.attributeid = attributes.attributeid
         where itemid = %s''',[item_id])
@@ -387,6 +376,7 @@ def login_get(item_id):
         where itemid = %s''',[item_id])
     slike = cur.fetchall()
 
+    
     cur.execute(''' SELECT itemid,itemname,categoryid,
                     ownerid,bid,buyout,posted_date::date,expires::date,description,
                     current_bidder,userid,username,name,surname,email,previous_bid FROM items
@@ -396,20 +386,23 @@ def login_get(item_id):
 
 
     ## bid in buyout update
-    bid=request.forms.get("bid")
-    buyout=request.forms.get("buyout")
+
+    #Če je uporabnik pritisnil bid ali buyout, dobi ponujeno ceno:
+    bid=request.forms.get("bid") #vrednost
+    buyout=request.forms.get("buyout") #1 ali 0
+
+    #Če je uporabnik vnesel isto bid ceno, kot je buyout.. kupi predmet
     if bid == item[5]:
         bid = None
         buyout = 1
-        
+
+    #sicer:
     if bid is not None:
         bid = Decimal(bid)
         if curuser[3]<=bid:
             napaka = "You don't have enough funds to do that"
         elif str(curuser[0]) == str(item[9]):
             napaka ="You're already the highest bidder"
-        elif bid==item[5]:
-            buyout = 1 #če je bid enak buyout ceni kr kupis item
         else:
             if item[9]:                                                                 #če prejšnji bidder obstaja:
                 cur.execute("UPDATE users SET balance = balance + %s WHERE userID = %s", #prejšnji max bidder dobi denar nazaj
@@ -417,11 +410,11 @@ def login_get(item_id):
                 
             cur.execute("UPDATE users SET balance = balance - %s WHERE userID = %s", #novi bidder plača
                 [bid,curuser[0]])
-            cur.execute("UPDATE items SET current_bidder = %s WHERE itemid = %s", #novi bidder plača
+            cur.execute("UPDATE items SET current_bidder = %s WHERE itemid = %s", #novi max bidder je:
                 [curuser[0],item_id])
             cur.execute("UPDATE items SET previous_bid = bid WHERE itemid=%s",[item_id]) #stari bid update
             if round(bid*105)/100 > item[5]:
-                cur.execute("UPDATE items SET bid = NULL WHERE itemid=%s",[item_id]) #če nova bid cena preseže buyout se nastavi na null
+                cur.execute("UPDATE items SET bid = NULL WHERE itemid=%s",[item_id]) #če nova bid cena preseže buyout se 'bid' nastavi na null
             else:
                 cur.execute("UPDATE items SET bid = %s WHERE itemid=%s",[round(bid*105)/100,item_id]) #sicer se poveča za 5% in zaokroži
             redirect("/item/"+item_id+"/")
@@ -435,9 +428,9 @@ def login_get(item_id):
                     [item[15],item[9]])
             cur.execute("UPDATE users SET balance = balance - %s WHERE userID = %s", #novi kupec plača
                 [item[5],curuser[0]])
-            cur.execute("INSERT INTO sold_expired (SELECT * FROM ITEMS WHERE itemid=%s)",[item_id])
-            cur.execute("INSERT INTO transactions (itemid,buyerid,transaction,tr_date,tr_method) VALUES (%s,%s,%s,now(),'buyout')",[item_id,curuser[0],item[5]])
-            cur.execute("DELETE from items WHERE itemid=%s",[item_id])
+            cur.execute("INSERT INTO sold_expired (SELECT * FROM ITEMS WHERE itemid=%s)",[item_id]) #shrani predmet v drugo tabelo za namene arhiviranja
+            cur.execute("INSERT INTO transactions (itemid,buyerid,transaction,tr_date,tr_method) VALUES (%s,%s,%s,now(),'buyout')",[item_id,curuser[0],item[5]]) #zapiši transakcijo
+            cur.execute("DELETE from items WHERE itemid=%s",[item_id]) #odstrani predmet iz tabele items
             redirect("/shop/")
 
 
@@ -479,7 +472,7 @@ def login_post():
         # Username in geslo se ne ujemata
         return template("login.html",
                                napaka="No such user",
-							   logged=None,
+			       logged=None,
                                username=username)
     else:
         # Vse je v redu, nastavimo cookie in preusmerimo na glavno stran
@@ -490,7 +483,7 @@ def login_post():
 
 
 @get("/register/")
-def login_get():
+def register_get():
     """Prikaži formo za registracijo."""
     curuser = get_user(auto_redir = True)
     return template("register.html", 
@@ -536,13 +529,13 @@ def register_post():
 
 
 @get("/account/")
-def login_get():
-    """Prikaži formo za registracijo."""
+def account_get():
     curuser = get_user(auto_login=True)
 
-
+    #Zavihki z podatki o trenutnih bidih, kupljenih predmetih in mojih predmetih
     cur.execute("SELECT itemid,itemname,bid,expires::date from items where current_bidder = %s",[curuser[0]])
     bids = cur.fetchall()
+    
     cur.execute('''SELECT transactions.itemid,itemname,transaction,tr_method,tr_date::date FROM transactions
                 JOIN sold_expired on sold_expired.itemid=transactions.itemid
                 WHERE buyerid = %s''',
@@ -569,7 +562,7 @@ def login_get():
 
 
 @post("/account/")
-def register_post():
+def account_post():
     """Depozit."""
     curuser = get_user(auto_login=True)
     deposit = Decimal(request.forms.deposit)
@@ -607,10 +600,10 @@ def register_post():
                            stanje=curuser[3],
                            username=None,
                            ime=None,
-                           napaka="Amount would exceed your balance limit.",
+                           napaka="Amount would exceed your balance limit (999.999,00€).",
                            logged=curuser[2])
 
-    
+    #če ni napake, dodaj denar uporabniku in prikaži novo stanje
     cur.execute("UPDATE users SET balance = balance + %s WHERE userID = %s", [deposit,curuser[0]])
     return template("account.html",
                            bids = bids,
@@ -626,12 +619,11 @@ def register_post():
 
 
 @get("/new/")
-def login_get():
-    """Prikaži formo za registracijo."""
-    maxdepth = 99 #mogoče nepotrebno
+def new_get():
+    """Objavi nov predmet."""
     curuser = get_user(auto_login=True)
     query = dict(request.query) #poberemo parametre iz query stringa, shranimo v slovar
-    seznam_kategorij = []#seznam seznamov kategorij (po globinah)
+    seznam_kategorij = [] #seznam seznamov kategorij (po globinah)
     seznam_atributov = []
     cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid is NULL") #dobi vse kategorije globine 0 in jih spravi v seznam kategorij
     seznam_kategorij.append(cur.fetchall())
@@ -641,9 +633,9 @@ def login_get():
     for i in range(0,5):
         #globina kategorij zaenkrat največ pet
         try:
-            ustreznost="krneki" 
+            ustreznost="krnekaj" #če nimamo izbranih podkategorij
             if i >0:
-                #query stringi se lahko pomešajo, napačni inputi itd. Ta if preveri, če hiearhija res drži, sicer vrne napako
+                #query stringi se lahko pomešajo (če uporabnik na silo spreminja url), napačni inputi itd. Ta if preveri, če hiearhija res drži, sicer vrne napako
                 cur.execute("SELECT categoryid,category_name FROM categories WHERE categoryid = %s AND parentid = %s",[query[str(i)],query[str(i-1)]])
                 ustreznost=cur.fetchone()
             if ustreznost == None:
@@ -653,13 +645,15 @@ def login_get():
                 cur.execute("SELECT categoryid,category_name FROM categories WHERE parentid = %s",[int(query[str(i)])])
                 result = cur.fetchall()
                 cleanquery[str(i)] = query[str(i)]
+
+                #če ni pod-podkategorij za dano podkategorijo:
                 if not result:
                     attrib = 1
-                    break
+                    break #prekini zanko, dobi možne atribute
                 else:
                     seznam_kategorij.append(result)                   
         except:
-            #če pride do napake (npr. query stringa ni bilo za dan 'i') nastavi vrednost v slovarju na dummy, da ga html ignorira
+            #če pride do napake (npr. query stringa ni bilo za dan 'i') nastavi vrednost v slovarju na 'dummy', da ga html ignorira
             query[str(i)] = "dummy"
             
 
@@ -672,13 +666,12 @@ def login_get():
             cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
             seznam_atributov+= cur.fetchall()
         for i in seznam_atributov:
-            values.append('')
+            values.append('') #default value za atribut preden ga uporabnik spremeni
             
 
     return template("new.html",
                            values = values,
                            attrib = attrib,
-                           maxdepth = maxdepth,
                            seznam=seznam_kategorij,
                            seznam_atributov = seznam_atributov,
                            query=query,
@@ -690,8 +683,7 @@ def login_get():
 
 
 @post("/new/")
-def post():
-    maxdepth = 99 #mogoče nepotrebno
+def post_new():
     curuser = get_user(auto_login=True)
     query = dict(request.query) #poberemo parametre iz query stringa, shranimo v slovar
     seznam_kategorij = []#seznam seznamov kategorij (po globinah)
@@ -735,6 +727,7 @@ def post():
             cur.execute("SELECT attributeid,attributename,attributeclass FROM cat_attrib WHERE categoryid = %s",[cleanquery[str(i)]])
             seznam_atributov+= cur.fetchall()
         formname=None
+        #prvih nekaj je standardnih atributov ki so skupni za vse predmete
         values[0] = request.forms.get("itemname")
         values[1] = request.forms.get("message")
         values[2] = request.forms.get("bidprice") or None
@@ -743,7 +736,7 @@ def post():
         image = request.files.get("uploaded")
         for atribut in seznam_atributov:
             formname="a"+str(atribut[0])
-            values.append(request.forms.get(formname))
+            values.append(request.forms.get(formname)) #dobi preostale atribute
             
         #napake:
         if values[2] is None and values[3] is None:
@@ -753,28 +746,25 @@ def post():
                 napaka = "Bid price must be lower than the buyout price!"
         if len(values[0]) > 100:
             napaka = "Item name is too long!"
-            
-            
-        print("tu sem 0")        
+               
         if not napaka:
+            #če ni napake, zapiši item v bazo
             cur.execute("INSERT INTO items(itemname, categoryid, ownerid, bid, buyout,expires,description,current_bidder,previous_bid) VALUES (%s,%s,%s,%s,%s,now()+%s::interval,%s,NULL,NULL)",
                 (values[0],cleanquery[max(cleanquery)],curuser[0],values[2],values[3],values[4]+" days",values[1]))
-            cur.execute("SELECT last_value FROM items_itemid_seq")
+            cur.execute("SELECT last_value FROM items_itemid_seq") #kateri id bo dobil nov predmet?
             itemid=cur.fetchone()
             for i in range(6,len(values)):
-                if values[i] is not None:
+                if values[i] is not None: #uporabnik lahko pusti določen atribut prazen
                     cur.execute("INSERT INTO attributes(itemid,attributeid,value) VALUES (%s,%s,%s)",
                                 (itemid[0],seznam_atributov[i-6][0],values[i]))
-            print(image,napaka)             
             if image is not None and napaka is None:
+                #todo: max image size
                 name, ext = os.path.splitext(image.filename)
                 if ext.lower() not in ('.png','.jpg','.jpeg'):
                     napaka = 'Image file extension not allowed.'
                 else:
-                    print("tu sem 1")
                     save_path = os.getcwd()+"\\static\\images\\uploads"            
                     filename = str(itemid[0]) + ext
-                    print(filename)
                     image.filename = filename
                     image.save(save_path) # appends upload.filename automatically
                     cur.execute("INSERT INTO images (itemid,imagename) values (%s,%s)",[itemid[0],filename])
@@ -796,9 +786,10 @@ def post():
     
     
 @get("/logout/")
-def logout():
+def logout_get():
     """Pobriši cookie in preusmeri na login."""
-    response.set_cookie('username',value="bai",secret=secret,path='/', max_age=0)
+    #deluje tako, da nastavi čas do izteka piškotka na 0.
+    response.set_cookie('username',value="off",secret=secret,path='/', max_age=0)
     redirect('/shop/')
 
 

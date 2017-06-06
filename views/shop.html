@@ -96,9 +96,7 @@
 						</div><!--/breadcrums-->
 					</div>
 					<div class="col-sm-3">
-						<div class="search_box pull-right">
-							<input type="text" placeholder="Search"/>
-						</div>
+						
 					</div>
 				</div>
 				</div>
@@ -206,6 +204,20 @@
 					
 					<h2>Filter Results</h2>						
 					<form action=".">
+						
+							<div class ="row">
+								<div class="shopper-info col-sm-12"> 
+									<input type="text" name ="search" placeholder="Search"/
+									%try:
+									%if query['search'] != '':
+										value = {{query['search']}}
+									%end
+									%except:
+										%pass
+									%end
+									>
+								</div>
+							</div>
 						Bid price:
 							<div class ="row">
 								<div class="shopper-info col-sm-6"> 
