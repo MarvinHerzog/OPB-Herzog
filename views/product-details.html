@@ -140,22 +140,29 @@
 								<p>Posted on: {{item[6].strftime("%A, %d. %B %Y")}}</p>
 								<p>Expires: {{item[7].strftime("%A, %d. %B %Y")}}</p>
 								
-								
-								
+								<script>
+								function getbid(){
+									var str1 = "Place a bid for ";
+									var str2 = document.getElementById('bid1').value;
+									var str3 = "€?";
+									return confirm(str1.concat(str2,str3));
+								}
+								</script>
 				
 								
 								%if item[4]:
-								<form method="post" onsubmit="return confirm('Place a bid for {{item[4]}}€?');">
+								<form method="post" onsubmit="return getbid();">
 								<div style="width:100%" class="row">
 									<div class="col-sm-5 bid"><span>Current bid price: </span></div>
 									<div  class="col-sm-7 bid">
 										<span class="currencyinput"  style="width:150px; text-align:left; float:left">
-											<input name="bid" value="{{item[4]}}" type="number" step="0.01" min="{{item[4]}}" max="{{item[5]}}"
+											<input name="bid" id="bid1" value="{{item[4]}}" type="number" step="0.01" min="{{item[4]}}" max="{{item[5]}}"
 											style="width:130px; text-align:right; margin-right:0; webkit-appearance: none; "></input>€</span>
 										<button onclick="submit" class="btn btn-fefault cart"  value="1">
 											<i class="fa fa-shopping-cart"></i>
 											Place bid
 										</button>
+										
 									</div>
 								</div>
 								</form>
